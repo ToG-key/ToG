@@ -499,8 +499,8 @@ delete window.CONFIG;
 delete window.API_URL;
 Object.defineProperty(window, 'ToGKeyManager', {get: () => null, set: () => {}, configurable: false});
 Object.defineProperty(window, 'API_URL', {get: () => 'Blocked', set: () => {}, configurable: false});
-console.log('🔒 Blocked API_URL');
-</script> 
+throw new Error('🔒 Blocked');
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToG Key V2</title>
