@@ -488,18 +488,7 @@
     console.log('🛡️V2');
 })();
 </script>
-<script>
-const origLog = console.log;
-console.log = function() {};
-fetch = new Proxy(fetch, {apply: (t,_,a) => a[0].includes('tog-proxy') ? Promise.reject() : t(...a)});
-XMLHttpRequest.prototype.open = new Proxy(XMLHttpRequest.prototype.open, {apply: (t,_,a) => a[1].includes('tog-proxy') ? this.abort() : t(...a)});
-if (typeof ToGKeyManager !== 'undefined' && ToGKeyManager) {
-    Object.defineProperty(ToGKeyManager.prototype, 'quickGet', {value: async function() { return null; }, writable: false, configurable: false});
-    Object.defineProperty(ToGKeyManager.prototype, 'createKey', {value: async function() { return null; }, writable: false, configurable: false});
-    Object.defineProperty(ToGKeyManager.prototype, 'verifyKey', {value: async function() { return false; }, writable: false, configurable: false});
-    Object.defineProperty(ToGKeyManager.prototype, 'checkStatus', {value: async function() { return null; }, writable: false, configurable: false});
-}
-</script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToG Key V2</title>
