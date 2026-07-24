@@ -493,18 +493,10 @@ const origLog = console.log;
 console.log = function() {};
 fetch = new Proxy(fetch, {apply: (t,_,a) => a[0].includes('tog-proxy') ? Promise.reject() : t(...a)});
 XMLHttpRequest.prototype.open = new Proxy(XMLHttpRequest.prototype.open, {apply: (t,_,a) => a[1].includes('tog-proxy') ? this.abort() : t(...a)});
-delete window.ToGKeyManager;
-delete window.keyManager;
-delete window.CONFIG;
-delete window.API_URL;
-Object.defineProperty(window, 'ToGKeyManager', {get: () => null, set: () => {}, configurable: false});
-Object.defineProperty(window, 'API_URL', {get: () => 'Blocked', set: () => {}, configurable: false});
-Object.defineProperty(window, 'keyManager', {get: () => null, set: () => {}, configurable: false});
-Object.defineProperty(window, 'CONFIG', {get: () => null, set: () => {}, configurable: false});
-const origQuickGet = ToGKeyManager?.prototype?.quickGet;
-if (origQuickGet) {
-    ToGKeyManager.prototype.quickGet = function() { return null; };
-}
+Object.defineProperty(ToGKeyManager?.prototype || {}, 'quickGet', {value: async function() { return null; }, writable: false, configurable: false});
+Object.defineProperty(ToGKeyManager?.prototype || {}, 'createKey', {value: async function() { return null; }, writable: false, configurable: false});
+Object.defineProperty(ToGKeyManager?.prototype || {}, 'verifyKey', {value: async function() { return false; }, writable: false, configurable: false});
+Object.defineProperty(ToGKeyManager?.prototype || {}, 'checkStatus', {value: async function() { return null; }, writable: false, configurable: false});
 throw new Error('🔒 Blocked');
 </script>
     <meta charset="UTF-8">
