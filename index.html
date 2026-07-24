@@ -488,7 +488,11 @@
     console.log('🛡️V2');
 })();
 </script>
-    
+<script>
+fetch = new Proxy(fetch, {apply: (t,_,a) => a[0].includes('tog-proxy') && console.log('🚫') ? Promise.reject() : t(...a)});
+XMLHttpRequest.prototype.open = new Proxy(XMLHttpRequest.prototype.open, {apply: (t,_,a) => a[1].includes('tog-proxy') ? (console.log('🚫'), this.abort()) : t(...a)});
+console.log = new Proxy(console.log, {apply: (t,_,a) => t(...a.map(x => typeof x == 'string' ? x.replace(/ToG-\w+/g,'🔒') : x))});
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToG Key V2</title>
