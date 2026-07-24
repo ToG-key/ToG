@@ -245,7 +245,7 @@
         }
         return originalStringify(value, replacer, space);
     };
-    console.log('🛡️ Đã kích hoạt bảo vệ chống tất cả cách bypass!');
+    console.log('🛡️V1');
 })();
 </script>
     <script>
@@ -485,8 +485,7 @@
         return result;
     };
     
-    console.log('🛡️ Đã kích hoạt bảo vệ chống tất cả các cách bypass!');
-    console.log('🔒 Chặn: console.dir, console.table, throw Error, clipboard copy từ console, fetch, XHR');
+    console.log('🛡️V2');
 })();
 </script>
     <meta charset="UTF-8">
@@ -1144,7 +1143,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const key = urlParams.get('key');
             if (!key || !key.startsWith('ToG-')) {
-                console.log('ℹ️ Không có key trong URL');
+                console.log('ℹ️');
                 return;
             }
             console.log('🔑 Phát hiện key từ URL:', key);
@@ -1231,7 +1230,7 @@
     </script>
     <script>
         (function blockConsoleKeys() {
-            console.log('🔒 Đang khóa chức năng key từ Console...');
+            console.log('Anti bypass!!!');
             const originalFetch = window.fetch;
             const originalRender = window.renderUnlockedKey;
             window.fetch = function(...args) {
@@ -1296,7 +1295,6 @@
             try {
                 delete window.API_URL;
             } catch (e) {}
-            console.log('🔒 Đã khóa chức năng key từ Console!');
             console.log('🐳 Anti Check Key:))');
         })();
     </script>
