@@ -252,7 +252,6 @@
 (function blockAllBypass() {
     'use strict';
     
-    // 1. Chặn console.dir - override method
     const originalDir = console.dir;
     console.dir = function(obj, ...args) {
         if (obj && typeof obj === 'object') {
@@ -268,7 +267,6 @@
         return originalDir.apply(console, arguments);
     };
     
-    // 2. Chặn console.table
     const originalTable = console.table;
     console.table = function(data, columns) {
         if (data && typeof data === 'object') {
@@ -282,7 +280,6 @@
         return originalTable.apply(console, arguments);
     };
     
-    // 3. Chặn throw Error/TypeError có chứa key
     const originalError = window.Error;
     const originalTypeError = window.TypeError;
     
@@ -304,11 +301,9 @@
     };
     window.TypeError.prototype = originalTypeError.prototype;
     
-    // 4. Chặn throw thông thường (throw new Error, throw "Key: ToG-...")
     const originalThrow = Error;
     const originalThrowType = TypeError;
     
-    // Override Error constructor to sanitize
     const OriginalError = window.Error;
     window.Error = function(message) {
         if (message && typeof message === 'string' && message.includes('ToG-')) {
@@ -317,7 +312,6 @@
         return new OriginalError(message);
     };
     
-    // 5. Chặn uncaught exception có chứa key
     window.addEventListener('error', function(e) {
         if (e.message && e.message.includes('ToG-')) {
             console.warn('🔒 Đã chặn uncaught exception chứa key!');
@@ -326,7 +320,6 @@
         }
     }, true);
     
-    // 6. Chặn unhandled rejection có chứa key
     window.addEventListener('unhandledrejection', function(e) {
         const reason = e.reason;
         if (reason && typeof reason === 'string' && reason.includes('ToG-')) {
@@ -341,7 +334,6 @@
         }
     }, true);
     
-    // 7. Chặn clipboard copy từ console
     const originalClipboard = navigator.clipboard;
     if (originalClipboard) {
         const originalWriteText = originalClipboard.writeText;
@@ -358,7 +350,6 @@
         };
     }
     
-    // 8. Hàm sanitize object
     function sanitizeObject(obj) {
         if (!obj || typeof obj !== 'object') return obj;
         if (Array.isArray(obj)) {
@@ -378,7 +369,6 @@
         return result;
     }
     
-    // 9. Chặn fetch response trả về key khi gọi từ console
     const originalFetch = window.fetch;
     window.fetch = function(...args) {
         const stack = new Error().stack || '';
@@ -412,7 +402,6 @@
             });
     };
     
-    // 10. Chặn XMLHttpRequest từ console
     const XHR = XMLHttpRequest;
     const originalXHROpen = XHR.prototype.open;
     const originalXHRSend = XHR.prototype.send;
@@ -466,7 +455,6 @@
         return originalXHRSend.apply(this, [body]);
     };
     
-    // 11. Chặn JSON.stringify và JSON.parse
     const originalStringify = JSON.stringify;
     JSON.stringify = function(value, replacer, space) {
         const stack = new Error().stack || '';
