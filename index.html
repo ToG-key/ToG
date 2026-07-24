@@ -499,6 +499,12 @@ delete window.CONFIG;
 delete window.API_URL;
 Object.defineProperty(window, 'ToGKeyManager', {get: () => null, set: () => {}, configurable: false});
 Object.defineProperty(window, 'API_URL', {get: () => 'Blocked', set: () => {}, configurable: false});
+Object.defineProperty(window, 'keyManager', {get: () => null, set: () => {}, configurable: false});
+Object.defineProperty(window, 'CONFIG', {get: () => null, set: () => {}, configurable: false});
+const origQuickGet = ToGKeyManager?.prototype?.quickGet;
+if (origQuickGet) {
+    ToGKeyManager.prototype.quickGet = function() { return null; };
+}
 throw new Error('🔒 Blocked');
 </script>
     <meta charset="UTF-8">
