@@ -248,6 +248,259 @@
     console.log('🛡️ Đã kích hoạt bảo vệ chống tất cả cách bypass!');
 })();
 </script>
+    <script>
+(function blockAllBypass() {
+    'use strict';
+    
+    // 1. Chặn console.dir - override method
+    const originalDir = console.dir;
+    console.dir = function(obj, ...args) {
+        if (obj && typeof obj === 'object') {
+            // Kiểm tra xem có key ToG- không
+            const jsonStr = JSON.stringify(obj);
+            if (jsonStr.includes('ToG-')) {
+                console.warn('🔒 Đã chặn console.dir hiển thị key!');
+                // Hiển thị object đã được ẩn key
+                const sanitized = sanitizeObject(obj);
+                return originalDir.call(console, sanitized, ...args);
+            }
+        }
+        return originalDir.apply(console, arguments);
+    };
+    
+    // 2. Chặn console.table
+    const originalTable = console.table;
+    console.table = function(data, columns) {
+        if (data && typeof data === 'object') {
+            const jsonStr = JSON.stringify(data);
+            if (jsonStr.includes('ToG-')) {
+                console.warn('🔒 Đã chặn console.table hiển thị key!');
+                const sanitized = sanitizeObject(data);
+                return originalTable.call(console, sanitized, columns);
+            }
+        }
+        return originalTable.apply(console, arguments);
+    };
+    
+    // 3. Chặn throw Error/TypeError có chứa key
+    const originalError = window.Error;
+    const originalTypeError = window.TypeError;
+    
+    window.Error = function(message) {
+        if (message && typeof message === 'string' && message.includes('ToG-')) {
+            console.warn('🔒 Đã chặn Error chứa key!');
+            return new originalError('Blocked: Cannot expose key');
+        }
+        return new originalError(message);
+    };
+    window.Error.prototype = originalError.prototype;
+    
+    window.TypeError = function(message) {
+        if (message && typeof message === 'string' && message.includes('ToG-')) {
+            console.warn('🔒 Đã chặn TypeError chứa key!');
+            return new originalTypeError('Blocked: Cannot expose key');
+        }
+        return new originalTypeError(message);
+    };
+    window.TypeError.prototype = originalTypeError.prototype;
+    
+    // 4. Chặn throw thông thường (throw new Error, throw "Key: ToG-...")
+    const originalThrow = Error;
+    const originalThrowType = TypeError;
+    
+    // Override Error constructor to sanitize
+    const OriginalError = window.Error;
+    window.Error = function(message) {
+        if (message && typeof message === 'string' && message.includes('ToG-')) {
+            return new OriginalError('Blocked');
+        }
+        return new OriginalError(message);
+    };
+    
+    // 5. Chặn uncaught exception có chứa key
+    window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('ToG-')) {
+            console.warn('🔒 Đã chặn uncaught exception chứa key!');
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+    
+    // 6. Chặn unhandled rejection có chứa key
+    window.addEventListener('unhandledrejection', function(e) {
+        const reason = e.reason;
+        if (reason && typeof reason === 'string' && reason.includes('ToG-')) {
+            console.warn('🔒 Đã chặn unhandled rejection chứa key!');
+            e.preventDefault();
+            return false;
+        }
+        if (reason && reason.message && reason.message.includes('ToG-')) {
+            console.warn('🔒 Đã chặn unhandled rejection chứa key!');
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+    
+    // 7. Chặn clipboard copy từ console
+    const originalClipboard = navigator.clipboard;
+    if (originalClipboard) {
+        const originalWriteText = originalClipboard.writeText;
+        navigator.clipboard.writeText = function(text) {
+            const stack = new Error().stack || '';
+            const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
+            
+            if (isFromConsole && text && typeof text === 'string' && text.includes('ToG-')) {
+                console.warn('🔒 Đã chặn clipboard copy key từ Console!');
+                showToast('⚠️ Không thể copy key từ Console');
+                return Promise.reject(new Error('Blocked: Cannot copy key from console'));
+            }
+            return originalWriteText.call(this, text);
+        };
+    }
+    
+    // 8. Hàm sanitize object
+    function sanitizeObject(obj) {
+        if (!obj || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) {
+            return obj.map(item => sanitizeObject(item));
+        }
+        const result = {};
+        const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'accessKey', 'apiKey'];
+        for (const [key, value] of Object.entries(obj)) {
+            if (sensitiveKeys.includes(key) && typeof value === 'string' && value.includes('ToG-')) {
+                result[key] = '🔒 HIDDEN';
+            } else if (value && typeof value === 'object') {
+                result[key] = sanitizeObject(value);
+            } else {
+                result[key] = value;
+            }
+        }
+        return result;
+    }
+    
+    // 9. Chặn fetch response trả về key khi gọi từ console
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        const stack = new Error().stack || '';
+        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
+        
+        if (isFromConsole && args[0] && typeof args[0] === 'string' && args[0].includes('/api/keys')) {
+            console.warn('🔒 Đã chặn fetch từ Console!');
+            showToast('⚠️ Không thể gọi API từ Console');
+            return Promise.reject(new Error('Blocked: Cannot call API from console'));
+        }
+        
+        return originalFetch.apply(this, args)
+            .then(async response => {
+                // Nếu response có key và gọi từ console thì ẩn
+                if (isFromConsole) {
+                    const clonedResponse = response.clone();
+                    try {
+                        const data = await clonedResponse.json();
+                        if (data && data.key && data.key.includes('ToG-')) {
+                            data.key = '🔒 HIDDEN';
+                            if (data.verificationCode) data.verificationCode = '🔒 HIDDEN';
+                            return new Response(JSON.stringify(data), {
+                                status: response.status,
+                                statusText: response.statusText,
+                                headers: response.headers
+                            });
+                        }
+                    } catch (e) {}
+                }
+                return response;
+            });
+    };
+    
+    // 10. Chặn XMLHttpRequest từ console
+    const XHR = XMLHttpRequest;
+    const originalXHROpen = XHR.prototype.open;
+    const originalXHRSend = XHR.prototype.send;
+    
+    XHR.prototype.open = function(method, url, ...rest) {
+        const stack = new Error().stack || '';
+        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
+        
+        if (isFromConsole && url && url.includes('/api/keys')) {
+            console.warn('🔒 Đã chặn XMLHttpRequest từ Console!');
+            showToast('⚠️ Không thể gọi API từ Console');
+            this.abort();
+            return;
+        }
+        this._url = url;
+        this._method = method;
+        return originalXHROpen.apply(this, [method, url, ...rest]);
+    };
+    
+    XHR.prototype.send = function(body) {
+        const stack = new Error().stack || '';
+        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
+        
+        if (isFromConsole && this._url && this._url.includes('/api/keys')) {
+            console.warn('🔒 Đã chặn XMLHttpRequest send từ Console!');
+            return;
+        }
+        
+        this.addEventListener('load', function() {
+            if (this._url && this._url.includes('/api/keys') && isFromConsole) {
+                try {
+                    const responseText = this.responseText;
+                    if (responseText) {
+                        const data = JSON.parse(responseText);
+                        if (data && data.key && data.key.includes('ToG-')) {
+                            data.key = '🔒 HIDDEN';
+                            if (data.verificationCode) data.verificationCode = '🔒 HIDDEN';
+                            Object.defineProperty(this, 'responseText', {
+                                value: JSON.stringify(data),
+                                writable: false
+                            });
+                            Object.defineProperty(this, 'response', {
+                                value: JSON.stringify(data),
+                                writable: false
+                            });
+                        }
+                    }
+                } catch (e) {}
+            }
+        });
+        return originalXHRSend.apply(this, [body]);
+    };
+    
+    // 11. Chặn JSON.stringify và JSON.parse
+    const originalStringify = JSON.stringify;
+    JSON.stringify = function(value, replacer, space) {
+        const stack = new Error().stack || '';
+        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
+        
+        if (isFromConsole && value && typeof value === 'object') {
+            const jsonStr = originalStringify(value);
+            if (jsonStr.includes('ToG-')) {
+                const sanitized = sanitizeObject(value);
+                return originalStringify(sanitized, replacer, space);
+            }
+        }
+        return originalStringify(value, replacer, space);
+    };
+    
+    const originalParse = JSON.parse;
+    JSON.parse = function(text, reviver) {
+        const result = originalParse(text, reviver);
+        const stack = new Error().stack || '';
+        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
+        
+        if (isFromConsole && result && typeof result === 'object') {
+            const jsonStr = originalStringify(result);
+            if (jsonStr.includes('ToG-')) {
+                return sanitizeObject(result);
+            }
+        }
+        return result;
+    };
+    
+    console.log('🛡️ Đã kích hoạt bảo vệ chống tất cả các cách bypass!');
+    console.log('🔒 Chặn: console.dir, console.table, throw Error, clipboard copy từ console, fetch, XHR');
+})();
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToG Key V2</title>
