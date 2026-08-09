@@ -667,7 +667,6 @@ console.log('🛡️Main');
         
         return originalFetch.apply(this, args)
             .then(async response => {
-                // Nếu response có key và gọi từ console thì ẩn
                 if (isFromConsole) {
                     const clonedResponse = response.clone();
                     try {
@@ -812,7 +811,7 @@ try { delete window.verificationCode; } catch(e) {}
     <title>ToG Key V2</title>
     <link rel="preconnect" href="https://link4m.co">
     <link rel="dns-prefetch" href="https://link4m.co">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" href="/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
