@@ -1000,6 +1000,21 @@ try { delete window.verificationCode; } catch(e) {}
             flex-shrink: 0;
             position: relative
         }
+        .chip-mini::before,
+        .chip-mini::after {
+            content: "";
+            position: absolute;
+            left: 6px;
+            right: 6px;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.25)
+        }
+        .chip-mini::before {
+            top: 9px
+        }
+        .chip-mini::after {
+            top: 18px
+        }
         .keycard-mini-mid {
             position: relative;
             z-index: 1;
@@ -1226,6 +1241,7 @@ try { delete window.verificationCode; } catch(e) {}
                 </div>
                 <div>
                     <div class="dropdown-title">ToG<span> Key</span></div>
+                    <div class="dropdown-sub">Mã truy cập ToG</div>
                 </div>
             </div>
             <div class="dropdown-arrow">▾</div>
@@ -1236,7 +1252,9 @@ try { delete window.verificationCode; } catch(e) {}
                     <div class="keycard-mini-top">
                         <div>
                             <div class="keycard-mini-tag">ToG<span> Key</span></div>
+                            <div class="keycard-mini-sub">Mã truy cập ToG</div>
                         </div>
+                        <div class="chip-mini"></div>
                     </div>
                     <div class="keycard-mini-mid" id="keycardMid">
                         <span class="empty-key-text">Chưa có key</span>
@@ -1250,7 +1268,7 @@ try { delete window.verificationCode; } catch(e) {}
                     </div>
                 </div>
                 <div class="panel-mini" id="panelIdle">
-                    <div class="panel-mini-title">Nhận ToG Key của bạn</div>
+                    <div class="panel-mini-title">Nhận Key ToG của bạn</div>
                     <div class="panel-mini-desc">Nhấn <b>Lấy Key</b>, hoàn tất bước xác minh liên kết, bạn sẽ được đưa trở lại đây với key đã mở khóa.</div>
                     <button class="btn btn-primary" id="getKeyBtn">
                         <span class="spinner"></span>
