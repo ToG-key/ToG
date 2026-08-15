@@ -991,31 +991,93 @@ try { delete window.verificationCode; } catch(e) {}
             text-transform: uppercase;
             margin-top: 1px
         }
-        .chip-mini {
-            width: 36px;
-            height: 28px;
-            border-radius: 6px;
-            background: linear-gradient(155deg, var(--gold), var(--gold-2));
-            box-shadow: 0 4px 12px rgba(242, 179, 61, 0.25), inset 0 0 0 1px rgba(0, 0, 0, 0.15);
-            flex-shrink: 0;
-            position: relative
-        }
-        .chip-mini::before,
-        .chip-mini::after {
-            content: "";
-            position: absolute;
-            left: 6px;
-            right: 6px;
-            height: 1px;
-            background: rgba(0, 0, 0, 0.25)
-        }
-        .chip-mini::before {
-            top: 9px
-        }
-        .chip-mini::after {
-            top: 18px
-        }
-        .keycard-mini-mid {
+.chip-mini {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #1a1f2a, #0d1117);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.chip-mini::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 10px;
+    padding: 1px;
+    background: linear-gradient(135deg, 
+        rgba(242, 179, 61, 0.3),
+        transparent 40%,
+        transparent 60%,
+        rgba(242, 179, 61, 0.15)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.chip-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+    display: block;
+    filter: drop-shadow(0 2px 8px rgba(242, 179, 61, 0.15));
+}
+
+.dropdown-header:hover .chip-mini {
+    transform: scale(1.08);
+    box-shadow: 
+        0 6px 24px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(242, 179, 61, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dropdown-header:hover .chip-mini::before {
+    background: linear-gradient(135deg, 
+        rgba(242, 179, 61, 0.5),
+        transparent 30%,
+        transparent 70%,
+        rgba(242, 179, 61, 0.25)
+    );
+}
+
+.dropdown-header.open .chip-mini {
+    transform: rotate(-5deg) scale(1.05);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 0 60px rgba(242, 179, 61, 0.1);
+}
+
+@keyframes logoPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.chip-mini {
+    animation: logoPulse 3s ease-in-out infinite;
+}
+
+.dropdown-header:hover .chip-mini {
+    animation-play-state: paused;
+}
+.keycard-mini-mid {
             position: relative;
             z-index: 1;
             display: flex;
@@ -1254,7 +1316,9 @@ try { delete window.verificationCode; } catch(e) {}
                             <div class="keycard-mini-tag">ToG<span> Key</span></div>
                             <div class="keycard-mini-sub">Mã truy cập ToG</div>
                         </div>
-                        <div class="chip-mini"></div>
+                         <div class="chip-mini">
+    <img src="logo.png" alt="ToG Logo" class="chip-logo">
+</div>
                     </div>
                     <div class="keycard-mini-mid" id="keycardMid">
                         <span class="empty-key-text">Chưa có key</span>
