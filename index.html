@@ -2,7 +2,6 @@
 <html lang="vi">
 <head>
 <script src="https://tog-f1.github.io/adt/adt.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
 (function(){
 'use strict';
@@ -1379,6 +1378,10 @@ try { delete window.verificationCode; } catch(e) {}
         const LINK4M_API = "6a954eb5b9ba5176de7851ed";
         const LINK4M_BASE = "https://link4m.co/st";
         const API_URL = 'https://tog-proxy-vn1.vercel.app/api';
+        
+        // URL của Server Crypto (Vercel 1) - Nơi giữ mã Secret
+        const CRYPTO_URL = 'https://crypto-server-cua-ban.vercel.app/api/crypto';
+
         const header = document.getElementById('dropdownHeader');
         const body = document.getElementById('dropdownBody');
         const getKeyBtn = document.getElementById('getKeyBtn');
@@ -1456,61 +1459,39 @@ try { delete window.verificationCode; } catch(e) {}
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
         
-        // ==========================================
-        // BẮT ĐẦU: THÊM HMAC SIGNATURE (20s)
-        // ==========================================
-        const HMAC_SECRET = 'ToG-GoT-Get-Key-Key-Code-Key-ToG-9a8F7#kL2$mN5@pQ7!vX3&wZ9*cB4^dE6_RtY1';
-
-        async function secureFetch(url, options = {}) {
-            const timestamp = Date.now().toString();
-            const method = (options.method || 'GET').toUpperCase();
-            const urlObj = new URL(url);
-            const path = urlObj.pathname; 
-            
-            const payload = `${method}:${path}:${timestamp}`;
-            const signature = CryptoJS.HmacSHA256(payload, HMAC_SECRET).toString(CryptoJS.enc.Hex);
-
-            return fetch(url, {
-                ...options,
-                headers: {
-                    ...options.headers,
-                    'X-Signature': signature,
-                    'X-Timestamp': timestamp
-                }
+        // Hàm gọi Server Crypto
+        async function callCryptoServer(action, payload = {}) {
+            const response = await fetch(CRYPTO_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, payload })
             });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Crypto Server Error');
+            }
+            return data;
         }
-        // ==========================================
-        // KẾT THÚC HMAC
-        // ==========================================
 
         async function createKeyOnBackend() {
             try {
-                const response = await secureFetch(`${API_URL}/keys`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) {
-                    throw new Error('Backend error: ' + response.status);
-                }
-                const data = await response.json();
+                const data = await callCryptoServer('create_key');
                 if (!data || !data.key) {
-                    throw new Error('Invalid response from backend');
+                    throw new Error('Invalid response');
                 }
                 return data;
             } catch (error) {
                 console.error('❌ Create key error:', error.message);
-                showToast('❌ Không thể tạo key. Vui lòng thử lại sau.');
+                showToast('❌ ' + error.message);
                 return { success: false, error: error.message };
             }
         }
         async function verifyKeyOnBackend(key, verificationCode) {
             try {
-                const response = await secureFetch(`${API_URL}/keys/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: key, verificationCode: verificationCode })
+                const data = await callCryptoServer('verify', { 
+                    key: key, 
+                    verificationCode: verificationCode 
                 });
-                const data = await response.json();
                 return data;
             } catch (error) {
                 return { success: false, error: error.message };
@@ -1518,12 +1499,7 @@ try { delete window.verificationCode; } catch(e) {}
         }
         async function checkKeyStatus(key) {
             try {
-                const response = await secureFetch(`${API_URL}/keys/check-status`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: key })
-                });
-                const data = await response.json();
+                const data = await callCryptoServer('check_status', { key: key });
                 return data;
             } catch (error) {
                 return { success: false, error: error.message };
@@ -1565,12 +1541,7 @@ try { delete window.verificationCode; } catch(e) {}
                     <div style="margin-top:10px;color:var(--muted);font-size:13px;">Đang xác minh key...</div>
                 </div>
             `;
-            secureFetch(`${API_URL}/keys/check-status`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: key })
-                })
-                .then(response => response.json())
+            callCryptoServer('check_status', { key: key })
                 .then(data => {
                     console.log('📊 Status response from backend:', data);
                     if (data.success) {
