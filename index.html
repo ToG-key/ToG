@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <script src="https://tog-f1.github.io/adt/adt.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
 (function(){
 'use strict';
@@ -1454,9 +1455,37 @@ try { delete window.verificationCode; } catch(e) {}
             panelIdle.style.display = 'flex';
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
+        
+        // ==========================================
+        // BẮT ĐẦU: THÊM HMAC SIGNATURE (20s)
+        // ==========================================
+        const HMAC_SECRET = 'ToG_Super_Secure_HMAC_2026!_DoNotShare';
+
+        async function secureFetch(url, options = {}) {
+            const timestamp = Date.now().toString();
+            const method = (options.method || 'GET').toUpperCase();
+            const urlObj = new URL(url);
+            const path = urlObj.pathname; 
+            
+            const payload = `${method}:${path}:${timestamp}`;
+            const signature = CryptoJS.HmacSHA256(payload, HMAC_SECRET).toString(CryptoJS.enc.Hex);
+
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'X-Signature': signature,
+                    'X-Timestamp': timestamp
+                }
+            });
+        }
+        // ==========================================
+        // KẾT THÚC HMAC
+        // ==========================================
+
         async function createKeyOnBackend() {
             try {
-                const response = await fetch(`${API_URL}/keys`, {
+                const response = await secureFetch(`${API_URL}/keys`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -1476,7 +1505,7 @@ try { delete window.verificationCode; } catch(e) {}
         }
         async function verifyKeyOnBackend(key, verificationCode) {
             try {
-                const response = await fetch(`${API_URL}/keys/verify`, {
+                const response = await secureFetch(`${API_URL}/keys/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: key, verificationCode: verificationCode })
@@ -1489,7 +1518,7 @@ try { delete window.verificationCode; } catch(e) {}
         }
         async function checkKeyStatus(key) {
             try {
-                const response = await fetch(`${API_URL}/keys/check-status`, {
+                const response = await secureFetch(`${API_URL}/keys/check-status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: key })
@@ -1536,7 +1565,7 @@ try { delete window.verificationCode; } catch(e) {}
                     <div style="margin-top:10px;color:var(--muted);font-size:13px;">Đang xác minh key...</div>
                 </div>
             `;
-            fetch(`${API_URL}/keys/check-status`, {
+            secureFetch(`${API_URL}/keys/check-status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: key })
