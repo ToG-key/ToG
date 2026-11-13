@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToG Key V2</title>
-    <!-- Thư viện Cloudflare -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     
     <link rel="preconnect" href="https://link4m.co">
@@ -30,9 +29,7 @@
             margin: 0;
             padding: 0
         }
-        html, body {
-            height: 100%
-        }
+        html, body { height: 100% }
         body {
             margin: 0;
             min-height: 100vh;
@@ -46,11 +43,7 @@
             color: var(--text);
             padding: 32px 16px
         }
-        .dropdown-wrapper {
-            width: 100%;
-            max-width: 520px;
-            position: relative
-        }
+        .dropdown-wrapper { width: 100%; max-width: 520px; position: relative }
         .dropdown-header {
             display: flex;
             align-items: center;
@@ -63,15 +56,8 @@
             transition: border-color .2s, box-shadow .2s;
             user-select: none
         }
-        .dropdown-header:hover {
-            border-color: #3a4557;
-            box-shadow: 0 0 30px rgba(242, 179, 61, 0.04)
-        }
-        .dropdown-header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px
-        }
+        .dropdown-header:hover { border-color: #3a4557; box-shadow: 0 0 30px rgba(242, 179, 61, 0.04) }
+        .dropdown-header-left { display: flex; align-items: center; gap: 14px }
         .dropdown-icon {
             width: 40px;
             height: 40px;
@@ -84,29 +70,11 @@
             box-shadow: 0 4px 14px rgba(242, 179, 61, 0.25);
             flex-shrink: 0
         }
-        .dropdown-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: 0.02em
-        }
-        .dropdown-title span {
-            color: var(--gold)
-        }
-        .dropdown-sub {
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 2px
-        }
-        .dropdown-arrow {
-            font-size: 20px;
-            color: var(--muted);
-            transition: transform .3s ease;
-            line-height: 1
-        }
-        .dropdown-header.open .dropdown-arrow {
-            transform: rotate(180deg)
-        }
+        .dropdown-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.02em }
+        .dropdown-title span { color: var(--gold) }
+        .dropdown-sub { font-size: 12px; color: var(--muted); margin-top: 2px }
+        .dropdown-arrow { font-size: 20px; color: var(--muted); transition: transform .3s ease; line-height: 1 }
+        .dropdown-header.open .dropdown-arrow { transform: rotate(180deg) }
         .dropdown-body {
             margin-top: 12px;
             max-height: 0;
@@ -115,11 +83,7 @@
             opacity: 0;
             pointer-events: none
         }
-        .dropdown-body.open {
-            max-height: 700px;
-            opacity: 1;
-            pointer-events: auto
-        }
+        .dropdown-body.open { max-height: 700px; opacity: 1; pointer-events: auto }
         .dropdown-body-inner {
             background: var(--panel);
             border: 1px solid var(--line);
@@ -153,17 +117,7 @@
             transform: rotate(20deg);
             animation: sheen 6s ease-in-out infinite
         }
-        @keyframes sheen {
-            0% {
-                left: -60%
-            }
-            50% {
-                left: 130%
-            }
-            100% {
-                left: 130%
-            }
-        }
+        @keyframes sheen { 0% { left: -60% } 50% { left: 130% } 100% { left: 130% } }
         .keycard-mini-top {
             display: flex;
             align-items: flex-start;
@@ -171,23 +125,9 @@
             position: relative;
             z-index: 1
         }
-        .keycard-mini-tag {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 17px;
-            letter-spacing: 0.02em;
-            color: var(--text)
-        }
-        .keycard-mini-tag span {
-            color: var(--gold)
-        }
-        .keycard-mini-sub {
-            font-size: 10px;
-            color: var(--muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin-top: 1px
-        }
+        .keycard-mini-tag { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.02em; color: var(--text) }
+        .keycard-mini-tag span { color: var(--gold) }
+        .keycard-mini-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 1px }
         .chip-mini {
             width: 42px;
             height: 42px;
@@ -216,31 +156,13 @@
             mask-composite: exclude;
             pointer-events: none;
         }
-        .chip-logo {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 6px;
-            display: block;
-            filter: drop-shadow(0 2px 8px rgba(242, 179, 61, 0.15));
-        }
-        .dropdown-header:hover .chip-mini {
-            transform: scale(1.08);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 40px rgba(242, 179, 61, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-        }
-        .dropdown-header:hover .chip-mini::before {
-            background: linear-gradient(135deg, rgba(242, 179, 61, 0.5), transparent 30%, transparent 70%, rgba(242, 179, 61, 0.25));
-        }
-        .dropdown-header.open .chip-mini {
-            transform: rotate(-5deg) scale(1.05);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 60px rgba(242, 179, 61, 0.1);
-        }
-        @keyframes logoPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-        .chip-mini { animation: logoPulse 3s ease-in-out infinite; }
-        .dropdown-header:hover .chip-mini { animation-play-state: paused; }
+        .chip-logo { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; display: block; filter: drop-shadow(0 2px 8px rgba(242, 179, 61, 0.15)) }
+        .dropdown-header:hover .chip-mini { transform: scale(1.08); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 40px rgba(242, 179, 61, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12) }
+        .dropdown-header:hover .chip-mini::before { background: linear-gradient(135deg, rgba(242, 179, 61, 0.5), transparent 30%, transparent 70%, rgba(242, 179, 61, 0.25)) }
+        .dropdown-header.open .chip-mini { transform: rotate(-5deg) scale(1.05); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 60px rgba(242, 179, 61, 0.1) }
+        @keyframes logoPulse { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.02) } }
+        .chip-mini { animation: logoPulse 3s ease-in-out infinite }
+        .dropdown-header:hover .chip-mini { animation-play-state: paused }
         .keycard-mini-mid {
             position: relative;
             z-index: 1;
@@ -288,20 +210,10 @@
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.02)
         }
-        .status-pill-mini .led {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--muted)
-        }
+        .status-pill-mini .led { width: 5px; height: 5px; border-radius: 50%; background: var(--muted) }
         .status-pill-mini.ready .led { background: var(--teal); box-shadow: 0 0 8px var(--teal) }
         .status-pill-mini.locked .led { background: var(--gold); box-shadow: 0 0 8px var(--gold) }
-        .keycard-id-mini {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: var(--muted);
-            letter-spacing: 0.05em
-        }
+        .keycard-id-mini { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.05em }
         .panel-mini { display: flex; flex-direction: column; gap: 12px }
         .panel-mini-title { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: var(--text) }
         .panel-mini-desc { font-size: 13px; color: var(--muted); line-height: 1.5 }
@@ -322,11 +234,7 @@
             transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease
         }
         .btn:active { transform: scale(0.98) }
-        .btn-primary {
-            background: linear-gradient(155deg, var(--gold), var(--gold-2));
-            color: #1a1206;
-            box-shadow: 0 8px 20px -6px rgba(242, 179, 61, 0.4)
-        }
+        .btn-primary { background: linear-gradient(155deg, var(--gold), var(--gold-2)); color: #1a1206; box-shadow: 0 8px 20px -6px rgba(242, 179, 61, 0.4) }
         .btn-primary:hover { box-shadow: 0 12px 28px -6px rgba(242, 179, 61, 0.5) }
         .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none }
         .btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text) }
@@ -413,7 +321,6 @@
                     <div class="panel-mini-title">Nhận Key ToG của bạn</div>
                     <div class="panel-mini-desc">Nhấn <b>Lấy Key</b>, hoàn tất bước xác minh liên kết, bạn sẽ được đưa trở lại đây với key đã mở khóa.</div>
                     
-                    <!-- Cloudflare gọi hàm onCaptchaSuccess khi xong -->
                     <div class="cf-turnstile" data-sitekey="0x4AAAAAAF_TWy1CrQOJlJIE" data-callback="onCaptchaSuccess" style="margin-bottom: 15px; display: flex; justify-content: center;"></div>
                     
                     <button class="btn btn-primary" id="getKeyBtn">
@@ -436,20 +343,19 @@
     <div class="toast" id="toast"></div>
     
     <script>
-        // --- CẤU HÌNH SERVER ---
+        // CẤU HÌNH
         const LINK4M_API = "6a954eb5b9ba5176de7851ed";
         const LINK4M_BASE = "https://link4m.co/st";
-        const CRYPTO_URL = 'https://baovemahoa202020202020.vercel.app/api/cryp'; // URL Vercel của bạn
+        const CRYPTO_URL = 'https://baovemahoa202020202020.vercel.app/api/cryp'; 
 
-        // --- BIẾN LƯU CAPTCHA TOKEN ---
+        // LƯU CAPTCHA TOKEN
         let captchaToken = '';
 
-        // Hàm Cloudflare tự động gọi khi người dùng xác minh xong
+        // HÀM CALLBACK - Cloudflare tự động gọi khi xác minh thành công
         window.onCaptchaSuccess = function(token) {
             captchaToken = token;
         };
 
-        // --- CÁC PHẦN TỬ DOM ---
         const header = document.getElementById('dropdownHeader');
         const body = document.getElementById('dropdownBody');
         const getKeyBtn = document.getElementById('getKeyBtn');
@@ -501,18 +407,15 @@
                 </div>
             `;
             document.getElementById('copyKeyBtnSmall').addEventListener('click', function() {
-                const keyText = document.getElementById('keyDisplay').textContent;
-                navigator.clipboard.writeText(keyText);
+                navigator.clipboard.writeText(document.getElementById('keyDisplay').textContent);
                 showToast('📋 Đã sao chép key!');
             });
             document.getElementById('keyDisplay').addEventListener('click', function() {
-                const keyText = this.textContent;
-                navigator.clipboard.writeText(keyText);
+                navigator.clipboard.writeText(this.textContent);
                 showToast('📋 Đã sao chép key!');
             });
             document.getElementById('copyKeyBtn').addEventListener('click', function() {
-                const keyText = document.getElementById('keyDisplay').textContent;
-                navigator.clipboard.writeText(keyText);
+                navigator.clipboard.writeText(document.getElementById('keyDisplay').textContent);
                 showToast('📋 Đã sao chép key!');
             });
             statusPill.classList.remove('locked');
@@ -532,7 +435,6 @@
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
         
-        // --- HÀM GỌI CRYPTO SERVER ---
         async function callCryptoServer(action, payload = {}) {
             const response = await fetch(CRYPTO_URL, {
                 method: 'POST',
@@ -540,25 +442,17 @@
                 body: JSON.stringify({ action, payload })
             });
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Crypto Server Error');
-            }
+            if (!response.ok) throw new Error(data.error || 'Crypto Server Error');
             return data;
         }
 
         async function createKeyOnBackend() {
             try {
-                if (!captchaToken) {
-                    throw new Error('Vui lòng xác minh Captcha!');
-                }
-
+                if (!captchaToken) throw new Error('Vui lòng xác minh Captcha!');
                 const data = await callCryptoServer('create_key', { captchaToken });
-                if (!data || !data.key) {
-                    throw new Error('Invalid response');
-                }
+                if (!data || !data.key) throw new Error('Invalid response');
                 return data;
             } catch (error) {
-                console.error('❌ Create key error:', error.message);
                 showToast('❌ ' + error.message);
                 return { success: false, error: error.message };
             }
@@ -566,8 +460,7 @@
 
         async function verifyKeyOnBackend(key, verificationCode) {
             try {
-                const data = await callCryptoServer('verify', { key, verificationCode });
-                return data;
+                return await callCryptoServer('verify', { key, verificationCode });
             } catch (error) {
                 return { success: false, error: error.message };
             }
@@ -575,8 +468,7 @@
 
         async function checkKeyStatus(key) {
             try {
-                const data = await callCryptoServer('check_status', { key });
-                return data;
+                return await callCryptoServer('check_status', { key });
             } catch (error) {
                 return { success: false, error: error.message };
             }
@@ -593,12 +485,8 @@
             getKeyBtn.disabled = true;
             try {
                 const data = await createKeyOnBackend();
-                if (!data.success || !data.key) {
-                    throw new Error(data.error || 'Không tạo được key');
-                }
-                const key = data.key;
-                const verificationCode = data.verificationCode;
-                goThroughLink4m(key);
+                if (!data.success || !data.key) throw new Error(data.error || 'Không tạo được key');
+                goThroughLink4m(data.key);
             } catch (error) {
                 showToast('❌ Lỗi: ' + error.message);
                 getKeyBtn.classList.remove('loading');
@@ -618,36 +506,31 @@
                 </div>
             `;
 
-            checkKeyStatus(key)
-                .then(data => {
-                    if (data.success) {
-                        if (data.status === 'verified' || data.status === 'pending') {
-                            renderUnlockedKey(key, data.expires_at, data.created_at);
-                            showToast('🎉 Key đã được mở khóa!');
-                            document.getElementById('dropdownHeader').classList.add('open');
-                            document.getElementById('dropdownBody').classList.add('open');
-                        } else {
-                            showToast('⚠️ Key không hợp lệ');
-                            resetCard();
-                            clearKeyFromURL();
-                        }
+            checkKeyStatus(key).then(data => {
+                if (data.success) {
+                    if (data.status === 'verified' || data.status === 'pending') {
+                        renderUnlockedKey(key, data.expires_at, data.created_at);
+                        showToast('🎉 Key đã được mở khóa!');
+                        header.classList.add('open');
+                        body.classList.add('open');
                     } else {
-                        showToast('❌ Key không tồn tại trong hệ thống');
+                        showToast('⚠️ Key không hợp lệ');
                         resetCard();
                         clearKeyFromURL();
                     }
-                })
-                .catch(error => {
-                    console.error('❌ Lỗi kiểm tra key:', error);
-                    showToast('❌ Lỗi kết nối server. Vui lòng thử lại.');
+                } else {
+                    showToast('❌ Key không tồn tại');
                     resetCard();
                     clearKeyFromURL();
-                });
+                }
+            }).catch(error => {
+                showToast('❌ Lỗi kết nối server.');
+                resetCard();
+                clearKeyFromURL();
+            });
 
             function clearKeyFromURL() {
-                if (window.history && window.history.replaceState) {
-                    history.replaceState(null, '', window.location.pathname);
-                }
+                if (window.history && window.history.replaceState) history.replaceState(null, '', window.location.pathname);
                 sessionStorage.removeItem('pending_key');
                 sessionStorage.removeItem('verification_code');
             }
@@ -661,12 +544,8 @@
                 let verificationCode = null;
                 const encryptedKey = sessionStorage.getItem('pending_key');
                 const encryptedCode = sessionStorage.getItem('verification_code');
-                if (encryptedKey) {
-                    try { pendingKey = decodeURIComponent(atob(encryptedKey)); } catch (e) {}
-                }
-                if (encryptedCode) {
-                    try { verificationCode = decodeURIComponent(atob(encryptedCode)); } catch (e) {}
-                }
+                if (encryptedKey) try { pendingKey = decodeURIComponent(atob(encryptedKey)); } catch (e) {}
+                if (encryptedCode) try { verificationCode = decodeURIComponent(atob(encryptedCode)); } catch (e) {}
                 if (key === pendingKey && verificationCode) {
                     const result = await verifyKeyOnBackend(key, verificationCode);
                     if (result.success) {
