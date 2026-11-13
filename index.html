@@ -1465,11 +1465,26 @@ try { delete window.verificationCode; } catch(e) {}
         
         // ===== THÊM BIẾN LẮNG NGHE TƯƠNG TÁC =====
         let hasInteracted = false;
+        let globalSessionToken = ''; // <-- BIẾN LƯU TOKEN
         ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(event => {
             document.addEventListener(event, () => {
                 hasInteracted = true;
             }, { once: true });
         });
+
+        // ===== HÀM LẤY TOKEN TỪ SERVER =====
+        async function fetchSessionToken() {
+            if (globalSessionToken) return;
+            try {
+                const res = await fetch(CRYPTO_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get_token', hasInteracted: true })
+                });
+                const data = await res.json();
+                if (data.success) globalSessionToken = data.token;
+            } catch (e) {}
+        }
 
         // ===== TẠO VÂN TAY CANVAS (Vẽ chữ ToG) =====
         async function getCanvasHash() {
@@ -1487,6 +1502,9 @@ try { delete window.verificationCode; } catch(e) {}
 
         // Hàm gọi Server Crypto (đã tích hợp gửi mốc thời gian tương tác và sigCode)
         async function callCryptoServer(action, payload = {}) {
+            // Tự động xin Token nếu chưa có
+            if (action === 'create_key') await fetchSessionToken();
+
             const fi = window.__firstInteraction || null;
             const canvasHash = await getCanvasHash(); // Lấy mã Canvas
 
@@ -1499,7 +1517,8 @@ try { delete window.verificationCode; } catch(e) {}
                     hasInteracted: hasInteracted,
                     firstInteractionAt: fi ? fi.at : 0,
                     pageLoadAt: fi ? (fi.at - fi.sinceLoadMs) : (performance.timeOrigin || Date.now()),
-                    canvasHash: canvasHash // <-- GỬI CANVAS HASH LÊN SERVER
+                    canvasHash: canvasHash, // <-- GỬI CANVAS HASH LÊN SERVER
+                    sessionToken: globalSessionToken // <-- GỬI TOKEN LÊN SERVER
                 })
             });
             const data = await response.json();
