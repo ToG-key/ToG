@@ -1477,8 +1477,20 @@ try { delete window.verificationCode; } catch(e) {}
 
         async function createKeyOnBackend() {
             try {
-                // Lấy token từ Captcha
-                const captchaToken = document.querySelector('[name="cf-turnstile-response"]').value;
+                // Sửa lỗi lấy Token: Dùng API trực tiếp của Cloudflare để không bị code chặn DOM can thiệp
+                let captchaToken = '';
+                if (window.turnstile && typeof window.turnstile.getResponse === 'function') {
+                    captchaToken = window.turnstile.getResponse();
+                }
+
+                // Phương án dự phòng nếu turnstile chưa load kịp
+                if (!captchaToken) {
+                    const captchaInput = document.querySelector('[name="cf-turnstile-response"]');
+                    if (captchaInput) {
+                        captchaToken = captchaInput.value;
+                    }
+                }
+
                 if (!captchaToken) {
                     throw new Error('Vui lòng xác minh Captcha!');
                 }
