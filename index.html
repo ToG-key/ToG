@@ -1467,15 +1467,20 @@ try { delete window.verificationCode; } catch(e) {}
             }, { once: true });
         });
 
-        // Hàm gọi Server Crypto
+        // Hàm gọi Server Crypto (đã tích hợp gửi mốc thời gian tương tác)
         async function callCryptoServer(action, payload = {}) {
+            const fi = window.__firstInteraction || null;
             const response = await fetch(CRYPTO_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action: action, 
+                body: JSON.stringify({
+                    action: action,
                     payload: payload,
-                    hasInteracted: hasInteracted // <-- GỬI TRẠNG THÁI TƯƠNG TÁC
+                    hasInteracted: hasInteracted,
+                    // Mốc tương tác đầu tiên (ms epoch). 0 nếu chưa tương tác.
+                    firstInteractionAt: fi ? fi.at : 0,
+                    // Mốc tải trang (ms epoch)
+                    pageLoadAt: fi ? (fi.at - fi.sinceLoadMs) : (performance.timeOrigin || Date.now())
                 })
             });
             const data = await response.json();
@@ -1919,6 +1924,78 @@ try { delete window.verificationCode; } catch(e) {}
     };
     setInterval(emitEvent, 1000);
 
+})();
+</script>
+<script>
+(function trackInteractionTime() {
+    'use strict';
+
+    const pageLoadTime = performance.now();
+
+    let firstInteractionTime = null;
+    let interactionType = null;
+    let reported = false;
+
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+
+    function onFirstInteraction(e) {
+        if (firstInteractionTime !== null) return;
+
+        firstInteractionTime = performance.now();
+        interactionType = e.type;
+
+        events.forEach(evt => {
+            document.removeEventListener(evt, onFirstInteraction, true);
+        });
+
+        const elapsed = firstInteractionTime - pageLoadTime;
+
+        try {
+            console.log(
+                `⏱️ Tương tác đầu tiên: "${interactionType}" sau ${(elapsed / 1000).toFixed(3)}s kể từ khi tải trang`
+            );
+        } catch (err) {}
+
+        const toastEl = document.getElementById('toast');
+        if (toastEl) {
+            const msg = `⏱️ Tương tác đầu tiên sau ${(elapsed / 1000).toFixed(2)}s`;
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(trackInteractionTime._toastTimer);
+            trackInteractionTime._toastTimer = setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // Lưu để callCryptoServer đọc và gửi lên backend
+        window.__firstInteraction = {
+            type: interactionType,
+            at: Date.now(),
+            sinceLoadMs: elapsed
+        };
+
+        reported = true;
+    }
+
+    events.forEach(evt => {
+        document.addEventListener(evt, onFirstInteraction, { capture: true, passive: true });
+    });
+
+    setTimeout(() => {
+        if (!reported) {
+            try {
+                console.log('⏱️ Chưa có tương tác nào sau 30s kể từ khi tải trang');
+            } catch (err) {}
+        }
+    }, 30000);
+
+    window.addEventListener('load', () => {
+        const loadElapsed = performance.now() - pageLoadTime;
+        try {
+            console.log(`📄 Trang tải xong sau ${(loadElapsed / 1000).toFixed(3)}s`);
+        } catch (err) {}
+        window.__pageLoadMs = loadElapsed;
+    });
 })();
 </script>
 </body>
