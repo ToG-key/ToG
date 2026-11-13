@@ -1471,9 +1471,25 @@ try { delete window.verificationCode; } catch(e) {}
             }, { once: true });
         });
 
+        // ===== TẠO VÂN TAY CANVAS (Vẽ chữ ToG) =====
+        async function getCanvasHash() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "#000000";
+            ctx.fillText("ToG", 10, 50);
+            
+            const dataUrl = canvas.toDataURL();
+            const msgBuffer = new TextEncoder().encode(dataUrl);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         // Hàm gọi Server Crypto (đã tích hợp gửi mốc thời gian tương tác và sigCode)
         async function callCryptoServer(action, payload = {}) {
             const fi = window.__firstInteraction || null;
+            const canvasHash = await getCanvasHash(); // Lấy mã Canvas
+
             const response = await fetch(CRYPTO_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1481,10 +1497,9 @@ try { delete window.verificationCode; } catch(e) {}
                     action: action,
                     payload: payload,
                     hasInteracted: hasInteracted,
-                    // Mốc tương tác đầu tiên (ms epoch). 0 nếu chưa tương tác.
                     firstInteractionAt: fi ? fi.at : 0,
-                    // Mốc tải trang (ms epoch)
-                    pageLoadAt: fi ? (fi.at - fi.sinceLoadMs) : (performance.timeOrigin || Date.now())
+                    pageLoadAt: fi ? (fi.at - fi.sinceLoadMs) : (performance.timeOrigin || Date.now()),
+                    canvasHash: canvasHash // <-- GỬI CANVAS HASH LÊN SERVER
                 })
             });
             const data = await response.json();
