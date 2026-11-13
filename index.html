@@ -1459,12 +1459,20 @@ try { delete window.verificationCode; } catch(e) {}
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
         
-        // Hàm gọi Server Crypto
+        // ===== THAY ĐỔI TẠI ĐÂY: GỬI KÈM timeOnPage ĐỂ QUA LỚP BẢO VỆ =====
         async function callCryptoServer(action, payload = {}) {
+            // Tính thời gian người dùng ở trên trang
+            if (!window.pageLoadTime) window.pageLoadTime = Date.now();
+            const timeOnPage = Date.now() - window.pageLoadTime;
+
             const response = await fetch(CRYPTO_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, payload })
+                body: JSON.stringify({ 
+                    action: action, 
+                    payload: payload,
+                    timeOnPage: timeOnPage // <-- Gửi thêm dữ liệu này
+                })
             });
             const data = await response.json();
             if (!response.ok) {
@@ -1475,6 +1483,7 @@ try { delete window.verificationCode; } catch(e) {}
 
         async function createKeyOnBackend() {
             try {
+                // Gọi API, payload rỗng vì timeOnPage đã được thêm trong callCryptoServer
                 const data = await callCryptoServer('create_key');
                 if (!data || !data.key) {
                     throw new Error('Invalid response');
