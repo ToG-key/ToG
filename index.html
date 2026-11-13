@@ -1952,13 +1952,13 @@ try { delete window.verificationCode; } catch(e) {}
 
         try {
             console.log(
-                `⏱️ Tương tác đầu tiên: "${interactionType}" sau ${(elapsed / 1000).toFixed(3)}s kể từ khi tải trang`
+                `🐳`
             );
         } catch (err) {}
 
         const toastEl = document.getElementById('toast');
         if (toastEl) {
-            const msg = `⏱️ Tương tác đầu tiên sau ${(elapsed / 1000).toFixed(2)}s`;
+            const msg = `🐳`;
             toastEl.textContent = msg;
             toastEl.classList.add('show');
             clearTimeout(trackInteractionTime._toastTimer);
