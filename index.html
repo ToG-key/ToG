@@ -1575,7 +1575,7 @@ try { delete window.verificationCode; } catch(e) {}
                     if (data.success) {
                         if (data.status === 'verified' || data.status === 'pending') {
                             // Lấy ID hiển thị (ưu tiên từ server, fallback từ sessionStorage)
-                            const displayId = data.sigCode || data.client_id || sessionStorage.getItem('_tgs_') || '00000000';
+                            const displayId = data.userId || data.sigCode || data.client_id || sessionStorage.getItem('_tgs_') || '00000000';
                             renderUnlockedKey(key, data.expires_at, data.created_at, displayId);
                             showToast('🎉 Key đã được mở khóa!');
                             document.getElementById('dropdownHeader').classList.add('open');
