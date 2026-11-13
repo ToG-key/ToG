@@ -1459,24 +1459,12 @@ try { delete window.verificationCode; } catch(e) {}
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
         
-        // ===== THÊM BIẾN LẮNG NGHE TƯƠNG TÁC =====
-        let hasInteracted = false;
-        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(event => {
-            document.addEventListener(event, () => {
-                hasInteracted = true;
-            }, { once: true });
-        });
-
         // Hàm gọi Server Crypto
         async function callCryptoServer(action, payload = {}) {
             const response = await fetch(CRYPTO_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action: action, 
-                    payload: payload,
-                    hasInteracted: hasInteracted // <-- GỬI TRẠNG THÁI TƯƠNG TÁC
-                })
+                body: JSON.stringify({ action, payload })
             });
             const data = await response.json();
             if (!response.ok) {
