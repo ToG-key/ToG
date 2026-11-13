@@ -1359,7 +1359,7 @@ try { delete window.verificationCode; } catch(e) {}
             Storage.prototype.getItem = function(key) {
                 const stack = new Error().stack || '';
                 const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM');
-                if (isFromConsole && (key === 'pending_key' || key === 'verification_code')) {
+                if (isFromConsole && (key === 'pending_key' || key === 'verification_code' || key === '_tgs_')) {
                     console.warn('⚠️ Đã chặn truy cập sessionStorage từ Console!');
                     return null;
                 }
@@ -1368,7 +1368,7 @@ try { delete window.verificationCode; } catch(e) {}
             Storage.prototype.setItem = function(key, value) {
                 const stack = new Error().stack || '';
                 const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM');
-                if (isFromConsole && (key === 'pending_key' || key === 'verification_code')) {
+                if (isFromConsole && (key === 'pending_key' || key === 'verification_code' || key === '_tgs_')) {
                     console.warn('⚠️ Đã chặn ghi sessionStorage từ Console!');
                     return;
                 }
@@ -1406,9 +1406,13 @@ try { delete window.verificationCode; } catch(e) {}
         function shortId() {
             return Math.random().toString(16).slice(2, 10).toUpperCase();
         }
-        function renderUnlockedKey(key, expiresAt, createdAt) {
+        function makeHash8() {
+            return Math.floor(10000000 + Math.random() * 90000000).toString();
+        }
+        function renderUnlockedKey(key, expiresAt, createdAt, displayId) {
             window.currentKey = key;
-            const keyId = shortId();
+            // Sử dụng displayId từ tham số, nếu không có mới dùng shortId()
+            const keyId = displayId || shortId();
             keycardMid.innerHTML = `
                 <div style="width:100%; padding: 4px 0;">
                     <div style="text-align: center; margin-bottom: 8px;">
@@ -1467,7 +1471,7 @@ try { delete window.verificationCode; } catch(e) {}
             }, { once: true });
         });
 
-        // Hàm gọi Server Crypto (đã tích hợp gửi mốc thời gian tương tác)
+        // Hàm gọi Server Crypto (đã tích hợp gửi mốc thời gian tương tác và sigCode)
         async function callCryptoServer(action, payload = {}) {
             const fi = window.__firstInteraction || null;
             const response = await fetch(CRYPTO_URL, {
@@ -1490,9 +1494,10 @@ try { delete window.verificationCode; } catch(e) {}
             return data;
         }
 
-        async function createKeyOnBackend() {
+        async function createKeyOnBackend(sigCode) {
             try {
-                const data = await callCryptoServer('create_key');
+                // Gửi sigCode dưới dạng clientId trong payload
+                const data = await callCryptoServer('create_key', { sigCode: sigCode });
                 if (!data || !data.key) {
                     throw new Error('Invalid response');
                 }
@@ -1531,7 +1536,13 @@ try { delete window.verificationCode; } catch(e) {}
             getKeyBtn.classList.add('loading');
             getKeyBtn.disabled = true;
             try {
-                const data = await createKeyOnBackend();
+                // 1. Sinh ID 8 số đánh lạc hướng
+                const sigCode = makeHash8();
+                // 2. Lưu vào sessionStorage với tên biến _tgs_ (tránh bị quét)
+                sessionStorage.setItem('_tgs_', sigCode);
+
+                // 3. Gửi lên Backend (qua Proxy)
+                const data = await createKeyOnBackend(sigCode);
                 if (!data.success || !data.key) {
                     throw new Error(data.error || 'Không tạo được key');
                 }
@@ -1563,7 +1574,9 @@ try { delete window.verificationCode; } catch(e) {}
                     console.log('📊 Status response from backend:', data);
                     if (data.success) {
                         if (data.status === 'verified' || data.status === 'pending') {
-                            renderUnlockedKey(key, data.expires_at, data.created_at);
+                            // Lấy ID hiển thị (ưu tiên từ server, fallback từ sessionStorage)
+                            const displayId = data.sigCode || data.client_id || sessionStorage.getItem('_tgs_') || '00000000';
+                            renderUnlockedKey(key, data.expires_at, data.created_at, displayId);
                             showToast('🎉 Key đã được mở khóa!');
                             document.getElementById('dropdownHeader').classList.add('open');
                             document.getElementById('dropdownBody').classList.add('open');
@@ -1590,6 +1603,7 @@ try { delete window.verificationCode; } catch(e) {}
                 }
                 sessionStorage.removeItem('pending_key');
                 sessionStorage.removeItem('verification_code');
+                sessionStorage.removeItem('_tgs_');
             }
         })();
         (async function init() {
@@ -1711,7 +1725,7 @@ try { delete window.verificationCode; } catch(e) {}
                 return obj.map(item => hideAllKeys(item));
             }
             const result = {};
-            const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'ip_address', 'user_agent', 'sessionId', 'session_id'];
+            const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'ip_address', 'user_agent', 'sessionId', 'session_id', 'sigCode', 'client_id'];
             for (const [key, value] of Object.entries(obj)) {
                 if (sensitiveKeys.includes(key) && typeof value === 'string' && value.length > 0) {
                     if (value.startsWith('ToG-') || value.length >= 8) {
@@ -1784,9 +1798,9 @@ try { delete window.verificationCode; } catch(e) {}
             return args.map(arg => {
                 if (arg && typeof arg === 'object') {
                     let hasKey = false;
-                    const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code'];
+                    const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'sigCode', 'client_id'];
                     for (const sk of sensitiveKeys) {
-                        if (arg[sk] && typeof arg[sk] === 'string' && arg[sk].startsWith('ToG-')) {
+                        if (arg[sk] && typeof arg[sk] === 'string' && (arg[sk].startsWith('ToG-') || arg[sk].length >= 8)) {
                             hasKey = true;
                             break;
                         }
@@ -1841,9 +1855,9 @@ try { delete window.verificationCode; } catch(e) {}
         JSON.stringify = function(value, replacer, space) {
             if (value && typeof value === 'object') {
                 let hasKey = false;
-                const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code'];
+                const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'sigCode', 'client_id'];
                 for (const sk of sensitiveKeys) {
-                    if (value[sk] && typeof value[sk] === 'string' && value[sk].startsWith('ToG-')) {
+                    if (value[sk] && typeof value[sk] === 'string' && (value[sk].startsWith('ToG-') || value[sk].length >= 8)) {
                         hasKey = true;
                         break;
                     }
@@ -1859,9 +1873,9 @@ try { delete window.verificationCode; } catch(e) {}
             const result = originalParse(text, reviver);
             if (isFromConsole()) {
                 let hasKey = false;
-                const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code'];
+                const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'sigCode', 'client_id'];
                 for (const sk of sensitiveKeys) {
-                    if (result && result[sk] && typeof result[sk] === 'string' && result[sk].startsWith('ToG-')) {
+                    if (result && result[sk] && typeof result[sk] === 'string' && (result[sk].startsWith('ToG-') || result[sk].length >= 8)) {
                         hasKey = true;
                         break;
                     }
@@ -1992,7 +2006,7 @@ try { delete window.verificationCode; } catch(e) {}
     window.addEventListener('load', () => {
         const loadElapsed = performance.now() - pageLoadTime;
         try {
-            console.log(`📄 Trang tải xong sau ${(loadElapsed / 1000).toFixed(3)}s`);
+            console.log(`📄`);
         } catch (err) {}
         window.__pageLoadMs = loadElapsed;
     });
