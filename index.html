@@ -1475,7 +1475,8 @@ try { delete window.verificationCode; } catch(e) {}
                 body: JSON.stringify({ 
                     action: action, 
                     payload: payload,
-                    hasInteracted: hasInteracted // <-- GỬI TRẠNG THÁI TƯƠNG TÁC
+                    hasInteracted: hasInteracted,
+                    nonce: generateNonce() // <-- THÊM DÒNG NÀY ĐỂ QUA LỚP 8
                 })
             });
             const data = await response.json();
@@ -1483,6 +1484,11 @@ try { delete window.verificationCode; } catch(e) {}
                 throw new Error(data.error || 'Crypto Server Error');
             }
             return data;
+        }
+
+        // Hàm tạo Nonce ngẫu nhiên
+        function generateNonce() {
+            return Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
         }
 
         async function createKeyOnBackend() {
