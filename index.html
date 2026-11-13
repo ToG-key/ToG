@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToG Key V2</title>
+    <!-- Thư viện Cloudflare -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    
     <link rel="preconnect" href="https://link4m.co">
     <link rel="dns-prefetch" href="https://link4m.co">
     <link rel="icon" type="image/png" href="logo.png">
@@ -28,8 +30,7 @@
             margin: 0;
             padding: 0
         }
-        html,
-        body {
+        html, body {
             height: 100%
         }
         body {
@@ -187,93 +188,60 @@
             text-transform: uppercase;
             margin-top: 1px
         }
-.chip-mini {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: linear-gradient(145deg, #1a1f2a, #0d1117);
-    box-shadow: 
-        0 4px 16px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    flex-shrink: 0;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    transition: all 0.3s ease;
-    overflow: hidden;
-}
-
-.chip-mini::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: 10px;
-    padding: 1px;
-    background: linear-gradient(135deg, 
-        rgba(242, 179, 61, 0.3),
-        transparent 40%,
-        transparent 60%,
-        rgba(242, 179, 61, 0.15)
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-}
-
-.chip-logo {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 6px;
-    display: block;
-    filter: drop-shadow(0 2px 8px rgba(242, 179, 61, 0.15));
-}
-
-.dropdown-header:hover .chip-mini {
-    transform: scale(1.08);
-    box-shadow: 
-        0 6px 24px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(242, 179, 61, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.dropdown-header:hover .chip-mini::before {
-    background: linear-gradient(135deg, 
-        rgba(242, 179, 61, 0.5),
-        transparent 30%,
-        transparent 70%,
-        rgba(242, 179, 61, 0.25)
-    );
-}
-
-.dropdown-header.open .chip-mini {
-    transform: rotate(-5deg) scale(1.05);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        0 0 60px rgba(242, 179, 61, 0.1);
-}
-
-@keyframes logoPulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.02);
-    }
-}
-
-.chip-mini {
-    animation: logoPulse 3s ease-in-out infinite;
-}
-
-.dropdown-header:hover .chip-mini {
-    animation-play-state: paused;
-}
-.keycard-mini-mid {
+        .chip-mini {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #1a1f2a, #0d1117);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .chip-mini::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 10px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(242, 179, 61, 0.3), transparent 40%, transparent 60%, rgba(242, 179, 61, 0.15));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .chip-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+            display: block;
+            filter: drop-shadow(0 2px 8px rgba(242, 179, 61, 0.15));
+        }
+        .dropdown-header:hover .chip-mini {
+            transform: scale(1.08);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 40px rgba(242, 179, 61, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+        .dropdown-header:hover .chip-mini::before {
+            background: linear-gradient(135deg, rgba(242, 179, 61, 0.5), transparent 30%, transparent 70%, rgba(242, 179, 61, 0.25));
+        }
+        .dropdown-header.open .chip-mini {
+            transform: rotate(-5deg) scale(1.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 60px rgba(242, 179, 61, 0.1);
+        }
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .chip-mini { animation: logoPulse 3s ease-in-out infinite; }
+        .dropdown-header:hover .chip-mini { animation-play-state: paused; }
+        .keycard-mini-mid {
             position: relative;
             z-index: 1;
             display: flex;
@@ -326,54 +294,18 @@
             border-radius: 50%;
             background: var(--muted)
         }
-        .status-pill-mini.ready .led {
-            background: var(--teal);
-            box-shadow: 0 0 8px var(--teal)
-        }
-        .status-pill-mini.locked .led {
-            background: var(--gold);
-            box-shadow: 0 0 8px var(--gold)
-        }
+        .status-pill-mini.ready .led { background: var(--teal); box-shadow: 0 0 8px var(--teal) }
+        .status-pill-mini.locked .led { background: var(--gold); box-shadow: 0 0 8px var(--gold) }
         .keycard-id-mini {
             font-family: 'JetBrains Mono', monospace;
             font-size: 10px;
             color: var(--muted);
             letter-spacing: 0.05em
         }
-        .progress-container {
-            width: 100%;
-            height: 4px;
-            background: var(--line);
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 4px 0
-        }
-        .progress-bar {
-            height: 100%;
-            width: 100%;
-            background: var(--teal);
-            border-radius: 2px;
-            transition: width 1s ease, background .5s ease
-        }
-        .panel-mini {
-            display: flex;
-            flex-direction: column;
-            gap: 12px
-        }
-        .panel-mini-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text)
-        }
-        .panel-mini-desc {
-            font-size: 13px;
-            color: var(--muted);
-            line-height: 1.5
-        }
-        .panel-mini-desc b {
-            color: var(--text)
-        }
+        .panel-mini { display: flex; flex-direction: column; gap: 12px }
+        .panel-mini-title { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: var(--text) }
+        .panel-mini-desc { font-size: 13px; color: var(--muted); line-height: 1.5 }
+        .panel-mini-desc b { color: var(--text) }
         .btn {
             appearance: none;
             border: none;
@@ -389,48 +321,20 @@
             gap: 8px;
             transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease
         }
-        .btn:active {
-            transform: scale(0.98)
-        }
+        .btn:active { transform: scale(0.98) }
         .btn-primary {
             background: linear-gradient(155deg, var(--gold), var(--gold-2));
             color: #1a1206;
             box-shadow: 0 8px 20px -6px rgba(242, 179, 61, 0.4)
         }
-        .btn-primary:hover {
-            box-shadow: 0 12px 28px -6px rgba(242, 179, 61, 0.5)
-        }
-        .btn-primary:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-            box-shadow: none
-        }
-        .btn-ghost {
-            background: transparent;
-            border: 1px solid var(--line);
-            color: var(--text)
-        }
-        .btn-ghost:hover {
-            border-color: #37414f;
-            background: rgba(255, 255, 255, 0.02)
-        }
-        .row-mini {
-            display: flex;
-            gap: 10px
-        }
-        .row-mini .btn {
-            flex: 1
-        }
-        .hint-mini {
-            font-size: 12px;
-            color: var(--muted);
-            text-align: center;
-            line-height: 1.6
-        }
-        .hint-mini b {
-            color: var(--text);
-            font-weight: 600
-        }
+        .btn-primary:hover { box-shadow: 0 12px 28px -6px rgba(242, 179, 61, 0.5) }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none }
+        .btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text) }
+        .btn-ghost:hover { border-color: #37414f; background: rgba(255, 255, 255, 0.02) }
+        .row-mini { display: flex; gap: 10px }
+        .row-mini .btn { flex: 1 }
+        .hint-mini { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.6 }
+        .hint-mini b { color: var(--text); font-weight: 600 }
         .spinner {
             width: 16px;
             height: 16px;
@@ -440,17 +344,9 @@
             animation: spin .7s linear infinite;
             display: none
         }
-        .btn.loading .spinner {
-            display: inline-block
-        }
-        .btn.loading .btn-label {
-            display: none
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
+        .btn.loading .spinner { display: inline-block }
+        .btn.loading .btn-label { display: none }
+        @keyframes spin { to { transform: rotate(360deg) } }
         .toast {
             position: fixed;
             bottom: 24px;
@@ -468,25 +364,11 @@
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
             z-index: 20
         }
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0)
-        }
-        @media (prefers-reduced-motion:reduce) {
-            .keycard-mini::after {
-                animation: none
-            }
-        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0) }
         @media (max-width:480px) {
-            .dropdown-header {
-                padding: 14px 16px
-            }
-            .dropdown-body-inner {
-                padding: 16px
-            }
-            .keycard-mini {
-                padding: 16px 18px 14px
-            }
+            .dropdown-header { padding: 14px 16px }
+            .dropdown-body-inner { padding: 16px }
+            .keycard-mini { padding: 16px 18px 14px }
         }
     </style>
 </head>
@@ -531,7 +413,7 @@
                     <div class="panel-mini-title">Nhận Key ToG của bạn</div>
                     <div class="panel-mini-desc">Nhấn <b>Lấy Key</b>, hoàn tất bước xác minh liên kết, bạn sẽ được đưa trở lại đây với key đã mở khóa.</div>
                     
-                    <!-- Đã thêm thuộc tính data-callback để hứng token -->
+                    <!-- Cloudflare gọi hàm onCaptchaSuccess khi xong -->
                     <div class="cf-turnstile" data-sitekey="0x4AAAAAAF_TWy1CrQOJlJIE" data-callback="onCaptchaSuccess" style="margin-bottom: 15px; display: flex; justify-content: center;"></div>
                     
                     <button class="btn btn-primary" id="getKeyBtn">
@@ -552,20 +434,22 @@
         </div>
     </div>
     <div class="toast" id="toast"></div>
+    
     <script>
-        // Biến lưu Token
-        let cloudflareToken = '';
-
-        // Hàm Callback được Cloudflare gọi khi xác minh thành công
-        window.onCaptchaSuccess = function(token) {
-            cloudflareToken = token;
-        };
-
+        // --- CẤU HÌNH SERVER ---
         const LINK4M_API = "6a954eb5b9ba5176de7851ed";
         const LINK4M_BASE = "https://link4m.co/st";
-        const API_URL = 'https://tog-proxy-vn1.vercel.app/api';
-        const CRYPTO_URL = 'https://baovemahoa202020202020.vercel.app/api/cryp';
+        const CRYPTO_URL = 'https://baovemahoa202020202020.vercel.app/api/cryp'; // URL Vercel của bạn
 
+        // --- BIẾN LƯU CAPTCHA TOKEN ---
+        let captchaToken = '';
+
+        // Hàm Cloudflare tự động gọi khi người dùng xác minh xong
+        window.onCaptchaSuccess = function(token) {
+            captchaToken = token;
+        };
+
+        // --- CÁC PHẦN TỬ DOM ---
         const header = document.getElementById('dropdownHeader');
         const body = document.getElementById('dropdownBody');
         const getKeyBtn = document.getElementById('getKeyBtn');
@@ -575,21 +459,25 @@
         const statusText = document.getElementById('statusText');
         const keycardId = document.getElementById('keycardId');
         const toastEl = document.getElementById('toast');
+        
         let isOpen = false;
         header.addEventListener('click', () => {
             isOpen = !isOpen;
             header.classList.toggle('open', isOpen);
             body.classList.toggle('open', isOpen);
         });
+
         function showToast(msg) {
             toastEl.textContent = msg;
             toastEl.classList.add('show');
             clearTimeout(showToast._t);
             showToast._t = setTimeout(() => toastEl.classList.remove('show'), 3000);
         }
+
         function shortId() {
             return Math.random().toString(16).slice(2, 10).toUpperCase();
         }
+
         function renderUnlockedKey(key, expiresAt, createdAt) {
             window.currentKey = key;
             const keyId = shortId();
@@ -633,6 +521,7 @@
             keycardId.textContent = 'ID ' + keyId;
             panelIdle.style.display = 'none';
         }
+
         function resetCard() {
             keycardMid.innerHTML = `<span class="empty-key-text">Chưa có key</span>`;
             statusPill.classList.remove('ready');
@@ -643,7 +532,7 @@
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
         
-        // Hàm gọi Server Crypto
+        // --- HÀM GỌI CRYPTO SERVER ---
         async function callCryptoServer(action, payload = {}) {
             const response = await fetch(CRYPTO_URL, {
                 method: 'POST',
@@ -659,12 +548,11 @@
 
         async function createKeyOnBackend() {
             try {
-                if (!cloudflareToken) {
+                if (!captchaToken) {
                     throw new Error('Vui lòng xác minh Captcha!');
                 }
 
-                // Gửi token lên Server
-                const data = await callCryptoServer('create_key', { captchaToken: cloudflareToken });
+                const data = await callCryptoServer('create_key', { captchaToken });
                 if (!data || !data.key) {
                     throw new Error('Invalid response');
                 }
@@ -675,30 +563,31 @@
                 return { success: false, error: error.message };
             }
         }
+
         async function verifyKeyOnBackend(key, verificationCode) {
             try {
-                const data = await callCryptoServer('verify', { 
-                    key: key, 
-                    verificationCode: verificationCode 
-                });
+                const data = await callCryptoServer('verify', { key, verificationCode });
                 return data;
             } catch (error) {
                 return { success: false, error: error.message };
             }
         }
+
         async function checkKeyStatus(key) {
             try {
-                const data = await callCryptoServer('check_status', { key: key });
+                const data = await callCryptoServer('check_status', { key });
                 return data;
             } catch (error) {
                 return { success: false, error: error.message };
             }
         }
+
         function goThroughLink4m(key) {
             const destination = window.location.origin + window.location.pathname + '?key=' + encodeURIComponent(key);
             const wrapped = `${LINK4M_BASE}?api=${LINK4M_API}&url=${encodeURIComponent(destination)}`;
             window.location.replace(wrapped);
         }
+
         getKeyBtn.addEventListener('click', async () => {
             getKeyBtn.classList.add('loading');
             getKeyBtn.disabled = true;
@@ -716,19 +605,20 @@
                 getKeyBtn.disabled = false;
             }
         });
+
         (function displayKeyFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const key = urlParams.get('key');
-            if (!key || !key.startsWith('ToG-')) {
-                return;
-            }
+            if (!key || !key.startsWith('ToG-')) return;
+
             keycardMid.innerHTML = `
                 <div style="text-align:center;padding:20px;">
                     <div style="display:inline-block;width:30px;height:30px;border:3px solid var(--line);border-top:3px solid var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
                     <div style="margin-top:10px;color:var(--muted);font-size:13px;">Đang xác minh key...</div>
                 </div>
             `;
-            callCryptoServer('check_status', { key: key })
+
+            checkKeyStatus(key)
                 .then(data => {
                     if (data.success) {
                         if (data.status === 'verified' || data.status === 'pending') {
@@ -753,6 +643,7 @@
                     resetCard();
                     clearKeyFromURL();
                 });
+
             function clearKeyFromURL() {
                 if (window.history && window.history.replaceState) {
                     history.replaceState(null, '', window.location.pathname);
@@ -761,6 +652,7 @@
                 sessionStorage.removeItem('verification_code');
             }
         })();
+
         (async function init() {
             const params = new URLSearchParams(window.location.search);
             const key = params.get('key');
@@ -770,14 +662,10 @@
                 const encryptedKey = sessionStorage.getItem('pending_key');
                 const encryptedCode = sessionStorage.getItem('verification_code');
                 if (encryptedKey) {
-                    try {
-                        pendingKey = decodeURIComponent(atob(encryptedKey));
-                    } catch (e) {}
+                    try { pendingKey = decodeURIComponent(atob(encryptedKey)); } catch (e) {}
                 }
                 if (encryptedCode) {
-                    try {
-                        verificationCode = decodeURIComponent(atob(encryptedCode));
-                    } catch (e) {}
+                    try { verificationCode = decodeURIComponent(atob(encryptedCode)); } catch (e) {}
                 }
                 if (key === pendingKey && verificationCode) {
                     const result = await verifyKeyOnBackend(key, verificationCode);
