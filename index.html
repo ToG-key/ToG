@@ -1138,12 +1138,6 @@ try { delete window.verificationCode; } catch(e) {}
             background: var(--gold);
             box-shadow: 0 0 8px var(--gold)
         }
-        .keycard-id-mini {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: var(--muted);
-            letter-spacing: 0.05em
-        }
         .progress-container {
             width: 100%;
             height: 4px;
@@ -1328,18 +1322,17 @@ try { delete window.verificationCode; } catch(e) {}
                             <span class="led"></span>
                             <span id="statusText">Chưa mở khóa</span>
                         </div>
-                        <div class="keycard-id-mini" id="keycardId">ID ————————</div>
                     </div>
                 </div>
                 <div class="panel-mini" id="panelIdle">
-                    <div class="panel-mini-title">Nhận Key ToG của bạn</div>
-                    <div class="panel-mini-desc">Nhấn <b>Lấy Key</b>, hoàn tất bước xác minh liên kết, bạn sẽ được đưa trở lại đây với key đã mở khóa.</div>
-                    <button class="btn btn-primary" id="getKeyBtn">
-                        <span class="spinner"></span>
-                        <span class="btn-label">🔑 Lấy Key</span>
-                    </button>
-                    <div class="hint-mini">Mỗi lần nhấn sẽ tạo một key <b>ToG</b> ngẫu nhiên, duy nhất gồm 10 ký tự.</div>
-                </div>
+    <div class="panel-mini-title">Nhận Key ToG của bạn</div>
+    <div class="panel-mini-desc" style="visibility: hidden;">.</div>
+    <button class="btn btn-primary" id="getKeyBtn">
+        <span class="spinner"></span>
+        <span class="btn-label">🔑 Lấy Key</span>
+    </button>
+    <div class="hint-mini" style="visibility: hidden;">.</div>
+</div>
                 <div class="panel-mini" id="panelReady" style="display:none">
                     <div class="panel-mini-title">Key đã sẵn sàng</div>
                     <div class="panel-mini-desc">Sao chép key bên dưới để sử dụng. Giữ key này riêng tư.</div>
@@ -1389,7 +1382,6 @@ try { delete window.verificationCode; } catch(e) {}
         const keycardMid = document.getElementById('keycardMid');
         const statusPill = document.getElementById('statusPill');
         const statusText = document.getElementById('statusText');
-        const keycardId = document.getElementById('keycardId');
         const toastEl = document.getElementById('toast');
         let isOpen = false;
         header.addEventListener('click', () => {
@@ -1450,7 +1442,6 @@ try { delete window.verificationCode; } catch(e) {}
             statusPill.classList.remove('locked');
             statusPill.classList.add('ready');
             statusText.textContent = 'Đã mở khóa';
-            keycardId.textContent = 'ID ' + keyId;
             panelIdle.style.display = 'none';
         }
         function resetCard() {
@@ -1458,7 +1449,6 @@ try { delete window.verificationCode; } catch(e) {}
             statusPill.classList.remove('ready');
             statusPill.classList.add('locked');
             statusText.textContent = 'Chưa mở khóa';
-            keycardId.textContent = 'ID ————————';
             panelIdle.style.display = 'flex';
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
