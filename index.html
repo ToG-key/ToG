@@ -3,6 +3,20 @@
 <head>
 <script src="https://tog-f1.github.io/adt/adt.js"></script>
     <script>
+(function autoMaintenanceCheck() {
+    fetch('config.json')
+        .then(response => response.json())
+        .then(data => {
+            if (data.maintenance) {
+                window.location.replace('baotri.html');
+            }
+        })
+        .catch(err => {
+            console.log("Lỗi đọc cấu hình:", err);
+        });
+})();
+</script>
+    <script>
 (function(){
 'use strict';
 function isFromConsole(){
