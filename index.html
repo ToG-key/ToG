@@ -1,811 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<script src="https://tog-f1.github.io/adt/adt.js"></script>
-    <script>
-(function(){
-'use strict';
-function isFromConsole(){
-const stack=new Error().stack||'';
-return stack.includes('console')||stack.includes('eval')||stack.includes('VM')||stack.includes('debugger');
-}
-function isFromAsync(){
-const stack=new Error().stack||'';
-return stack.includes('setTimeout')||stack.includes('setInterval')||stack.includes('requestAnimationFrame')||stack.includes('Promise')||stack.includes('queueMicrotask');
-}
-const origSetTimeout=window.setTimeout;
-window.setTimeout=function(handler,delay,...args){
-if(isFromConsole()){
-console.warn('🔒 Chặn setTimeout từ Console');
-return origSetTimeout.call(this,function(){},0);
-}
-if(typeof handler==='function'){
-const handlerStr=handler.toString();
-if(handlerStr.includes('/api/keys')||handlerStr.includes('fetch')){
-console.warn('🔒 Chặn setTimeout chứa fetch đến /api/keys');
-return origSetTimeout.call(this,function(){},0);
-}
-}
-return origSetTimeout.apply(this,arguments);
-};
-const origSetInterval=window.setInterval;
-window.setInterval=function(handler,delay,...args){
-if(isFromConsole()){
-console.warn('🔒 Chặn setInterval từ Console');
-return origSetInterval.call(this,function(){},delay);
-}
-if(typeof handler==='function'&&handler.toString().includes('/api/keys')){
-console.warn('🔒 Chặn setInterval chứa fetch đến /api/keys');
-return origSetInterval.call(this,function(){},delay);
-}
-return origSetInterval.apply(this,arguments);
-};
-const origRAF=window.requestAnimationFrame;
-window.requestAnimationFrame=function(callback){
-if(isFromConsole()){
-console.warn('🔒 Chặn requestAnimationFrame từ Console');
-return origRAF.call(this,function(){});
-}
-if(typeof callback==='function'&&callback.toString().includes('/api/keys')){
-console.warn('🔒 Chặn requestAnimationFrame chứa fetch đến /api/keys');
-return origRAF.call(this,function(){});
-}
-return origRAF.apply(this,arguments);
-};
-const origQM=window.queueMicrotask;
-window.queueMicrotask=function(callback){
-if(isFromConsole()){
-console.warn('🔒 Chặn queueMicrotask từ Console');
-return;
-}
-if(typeof callback==='function'&&callback.toString().includes('/api/keys')){
-console.warn('🔒 Chặn queueMicrotask chứa fetch đến /api/keys');
-return;
-}
-return origQM.apply(this,arguments);
-};
-const origFetch=window.fetch;
-window.fetch=function(...args){
-const url=args[0];
-if(isFromConsole()){
-console.warn('🔒 Chặn fetch từ Console');
-return Promise.reject(new Error('Fetch bị chặn'));
-}
-if(isFromAsync()){
-console.warn('🔒 Chặn fetch từ async');
-return Promise.reject(new Error('Fetch bị chặn từ async'));
-}
-return origFetch.apply(this,args);
-};
-const origXHROpen=XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open=function(method,url,...rest){
-if(isFromConsole()){
-console.warn('🔒 Chặn XHR từ Console');
-this.abort();
-return;
-}
-if(isFromAsync()){
-console.warn('🔒 Chặn XHR từ async');
-this.abort();
-return;
-}
-return origXHROpen.apply(this,[method,url,...rest]);
-};
-Object.defineProperty(window,'name',{
-get:function(){
-if(isFromConsole())return'';
-return window._name||'';
-},
-set:function(value){
-if(isFromConsole()){
-console.warn('🔒 Chặn set window.name từ Console');
-return;
-}
-if(value&&(value.includes('KEY:')||value.includes('ToG-'))){
-console.warn('🔒 Chặn set window.name chứa key');
-return;
-}
-window._name=value;
-},
-configurable:false
-});
-const origTitleDesc=Object.getOwnPropertyDescriptor(Document.prototype,'title');
-Object.defineProperty(Document.prototype,'title',{
-get:function(){
-return this._title||'';
-},
-set:function(value){
-if(isFromConsole()){
-console.warn('🔒 Chặn set document.title từ Console');
-return;
-}
-if(value&&(value.includes('KEY:')||value.includes('🔑')||value.includes('ToG-'))){
-console.warn('🔒 Chặn set document.title chứa key');
-this._title='🔒';
-return;
-}
-this._title=value;
-origTitleDesc.set.call(this,value);
-},
-configurable:false
-});
-const origLS=Storage.prototype.setItem;
-Storage.prototype.setItem=function(key,value){
-if(isFromConsole()){
-console.warn('🔒 Chặn setItem từ Console');
-return;
-}
-if(value&&(value.includes('ToG-')||value.includes('KEY:'))){
-console.warn('🔒 Chặn setItem chứa key');
-return;
-}
-const sensitiveKeys=['__stolen_key','__stolen_code','__tmp_key','__tmp_code'];
-if(sensitiveKeys.includes(key)){
-console.warn('🔒 Chặn setItem với key nhạy cảm: '+key);
-return;
-}
-return origLS.call(this,key,value);
-};
-const origLG=Storage.prototype.getItem;
-Storage.prototype.getItem=function(key){
-if(isFromConsole()){
-console.warn('🔒 Chặn getItem từ Console');
-return null;
-}
-const sensitiveKeys=['__stolen_key','__stolen_code','__tmp_key','__tmp_code'];
-if(sensitiveKeys.includes(key)){
-console.warn('🔒 Chặn getItem với key nhạy cảm: '+key);
-return null;
-}
-return origLG.call(this,key);
-};
-const origHashDesc=Object.getOwnPropertyDescriptor(Location.prototype,'hash');
-Object.defineProperty(Location.prototype,'hash',{
-get:function(){
-return this._hash||'';
-},
-set:function(value){
-if(isFromConsole()){
-console.warn('🔒 Chặn set location.hash từ Console');
-return;
-}
-if(value&&(value.includes('key=')||value.includes('ToG-'))){
-console.warn('🔒 Chặn set location.hash chứa key');
-this._hash='#blocked';
-return;
-}
-this._hash=value;
-origHashDesc.set.call(this,value);
-},
-configurable:false
-});
-Object.defineProperty(Document.prototype,'cookie',{
-get:function(){
-if(isFromConsole()){
-console.warn('🔒 Chặn đọc cookie từ Console');
-return'';
-}
-return this._cookie||'';
-},
-set:function(value){
-if(isFromConsole()){
-console.warn('🔒 Chặn set cookie từ Console');
-return;
-}
-if(value&&(value.includes('stolen_key')||value.includes('ToG-'))){
-console.warn('🔒 Chặn set cookie chứa key');
-return;
-}
-this._cookie=value;
-document._cookie=value;
-},
-configurable:false
-});
-const origNav=navigator;
-Object.defineProperty(window,'navigator',{
-get:function(){
-if(isFromConsole()){
-console.warn('🔒 Chặn truy cập navigator từ Console');
-return new Proxy({},{get:function(){return undefined;},set:function(){return false;}});
-}
-return origNav;
-},
-configurable:false
-});
-const origMark=performance.mark;
-performance.mark=function(name,options){
-if(isFromConsole()){
-console.warn('🔒 Chặn performance.mark từ Console');
-return;
-}
-if(name==='key_captured'||(options&&options.detail&&options.detail.key)){
-console.warn('🔒 Chặn performance.mark chứa key');
-return;
-}
-return origMark.call(this,name,options);
-};
-const origGetEntries=performance.getEntriesByType;
-performance.getEntriesByType=function(type){
-if(isFromConsole()){
-console.warn('🔒 Chặn performance.getEntriesByType từ Console');
-return[];
-}
-const entries=origGetEntries.call(this,type);
-return entries.filter(entry=>{
-if(entry.name==='key_captured'||(entry.detail&&entry.detail.key))return false;
-return true;
-});
-};
-const origPromise=window.Promise;
-window.Promise=function(executor){
-if(isFromConsole()){
-console.warn('🔒 Chặn Promise từ Console');
-return new origPromise(function(){});
-}
-return new origPromise(executor);
-};
-const cleanupInterval = setInterval(function(){
-if(!isFromConsole()){
-return;
-}
-if(window._name&&(window._name.includes('ToG-')||window._name.includes('KEY:')))window._name='';
-if(document._title&&(document._title.includes('ToG-')||document._title.includes('KEY:')))document._title='🔒';
-try{
-const keys=Object.keys(localStorage);
-for(const key of keys){
-if(key.includes('stolen')||key.includes('tmp'))localStorage.removeItem(key);
-const val=localStorage.getItem(key);
-if(val&&(val.includes('ToG-')||val.includes('KEY:')))localStorage.removeItem(key);
-}
-}catch(e){}
-},500);
-const origDebugger=Function.prototype.constructor;
-Function.prototype.constructor=function(...args){
-const code=args.join('');
-if(code.includes('debugger')){
-console.warn('🔒 Chặn debugger');
-return function(){};
-}
-return origDebugger.apply(this,args);
-};
-let devtoolsOpen=false;
-setInterval(function(){
-const start=performance.now();
-debugger;
-const end=performance.now();
-if(end-start>100){
-if(!devtoolsOpen){
-devtoolsOpen=true;
-console.warn('🔒 Phát hiện DevTools mở');
-try{localStorage.clear();}catch(e){}
-document.title='🔒';
-window._name='';
-}
-}else{
-devtoolsOpen=false;
-}
-},2000);
-console.log('🛡️Main');
-})();
-</script>
-    <script>
-    (function blockAlertKey() {
-        const originalAlert = window.alert;
-        const originalConfirm = window.confirm;
-        const originalPrompt = window.prompt;
-        function isFromConsole() {
-            const stack = new Error().stack || '';
-            return stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-        }
-        function containsKey(text) {
-            if (!text || typeof text !== 'string') return false;
-            return text.includes('ToG-') || text.includes('Key:') || text.includes('Mã:') || /[A-Za-z0-9]{8,}/.test(text);
-        }
-        window.alert = function(message) {
-            if (containsKey(message)) {
-                console.warn('🔒 Đã chặn alert hiển thị key!');
-                return;
-            }
-            return originalAlert.call(this, message);
-        };
-        window.confirm = function(message) {
-            if (containsKey(message)) {
-                console.warn('🔒 Đã chặn confirm hiển thị key!');
-                return false;
-            }
-            return originalConfirm.call(this, message);
-        };
-        window.prompt = function(message, defaultValue) {
-            if (containsKey(message)) {
-                console.warn('🔒 Đã chặn prompt hiển thị key!');
-                return null;
-            }
-            return originalPrompt.call(this, message, defaultValue);
-        };
-    })();
-</script>
-    <script>
-(function antiAllBypass() {
-    'use strict';
-    const originalLog = console.log;
-    console.log = function(...args) {
-        const filtered = args.map(arg => {
-            if (typeof arg === 'string' && (arg.includes('ToG-') || arg.includes('Key:') || /[A-Za-z0-9]{8,}/.test(arg))) {
-                return '🔒 HIDDEN';
-            }
-            if (arg && typeof arg === 'object') {
-                const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code'];
-                for (const sk of sensitiveKeys) {
-                    if (arg[sk] && typeof arg[sk] === 'string' && arg[sk].startsWith('ToG-')) {
-                        arg[sk] = '🔒 HIDDEN';
-                    }
-                }
-                return arg;
-            }
-            return arg;
-        });
-        return originalLog.apply(console, filtered);
-    };
-    const originalError = window.Error;
-    window.Error = function(message) {
-        if (message && (message.includes('Key:') || message.includes('ToG-') || /[A-Za-z0-9]{8,}/.test(message))) {
-            return new originalError('Blocked');
-        }
-        return new originalError(message);
-    };
-    window.Error.prototype = originalError.prototype;
-    Object.freeze(window.Error);
-    const originalCreateElement = document.createElement;
-    document.createElement = function(tag) {
-        const element = originalCreateElement.call(this, tag);
-        const origInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
-        Object.defineProperty(element, 'innerHTML', {
-            get: origInnerHTML.get,
-            set: function(value) {
-                if (typeof value === 'string' && (
-                    value.includes('ToG-') || 
-                    value.includes('Key:') || 
-                    value.includes('🔑 KEY') ||
-                    value.includes('position:fixed') ||
-                    value.includes('z-index')
-                )) {
-                    return;
-                }
-                return origInnerHTML.set.call(this, value);
-            }
-        });
-        return element;
-    };
-    const originalAlert = window.alert;
-    window.alert = function(msg) {
-        if (msg && (msg.includes('Key:') || msg.includes('ToG-') || msg.includes('🔑'))) {
-            return;
-        }
-        return originalAlert.call(this, msg);
-    };
-    const originalConfirm = window.confirm;
-    window.confirm = function(msg) {
-        if (msg && (msg.includes('Key:') || msg.includes('ToG-') || msg.includes('🔑'))) {
-            return false;
-        }
-        return originalConfirm.call(this, msg);
-    };
-    const originalPrompt = window.prompt;
-    window.prompt = function(msg) {
-        if (msg && (msg.includes('Key:') || msg.includes('ToG-') || msg.includes('🔑'))) {
-            return null;
-        }
-        return originalPrompt.call(this, msg);
-    };
-    const originalFetch = window.fetch;
-    window.fetch = function(...args) {
-        const url = args[0];
-        if (typeof url === 'string' && url.includes('/api/keys')) {
-            const stack = new Error().stack || '';
-            if (stack.includes('console') || stack.includes('eval') || stack.includes('VM')) {
-                console.warn('🔒 Đã chặn fetch từ Console!');
-                return Promise.reject(new Error('Blocked'));
-            }
-        }
-        return originalFetch.apply(this, args);
-    };
-    const originalXHROpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url) {
-        if (url && url.includes('/api/keys')) {
-            const stack = new Error().stack || '';
-            if (stack.includes('console') || stack.includes('eval') || stack.includes('VM')) {
-                console.warn('🔒 Đã chặn XHR từ Console!');
-                return;
-            }
-        }
-        return originalXHROpen.apply(this, arguments);
-    };
-    const originalCreateElement2 = document.createElement;
-    document.createElement = function(tag) {
-        const element = originalCreateElement2.call(this, tag);
-        if (tag === 'iframe') {
-            Object.defineProperty(element, 'src', {
-                get: function() { return this._src || ''; },
-                set: function(value) {
-                    if (value && value.includes('eval')) {
-                        console.warn('🔒 Đã chặn iframe chứa eval!');
-                        return;
-                    }
-                    this._src = value;
-                }
-            });
-        }
-        return element;
-    };
-    const originalCreateElement3 = document.createElement;
-    document.createElement = function(tag) {
-        const element = originalCreateElement3.call(this, tag);
-        if (tag === 'script') {
-            const origSetAttribute = element.setAttribute;
-            element.setAttribute = function(name, value) {
-                if (name === 'src' && value && value.includes('evil')) {
-                    console.warn('🔒 Đã chặn script injection!');
-                    return;
-                }
-                return origSetAttribute.call(this, name, value);
-            };
-            Object.defineProperty(element, 'textContent', {
-                get: function() { return this._textContent || ''; },
-                set: function(value) {
-                    if (typeof value === 'string' && (
-                        value.includes('fetch') ||
-                        value.includes('/api/keys') ||
-                        value.includes('alert')
-                    )) {
-                        console.warn('🔒 Đã chặn script injection!');
-                        return;
-                    }
-                    this._textContent = value;
-                }
-            });
-        }
-        return element;
-    };
-    const originalWebSocket = window.WebSocket;
-    window.WebSocket = function(url) {
-        if (url && (url.includes('echo') || url.includes('websocket'))) {
-            console.warn('🔒 Đã chặn WebSocket!');
-            return null;
-        }
-        return new originalWebSocket(url);
-    };
-    const originalImage = window.Image;
-    window.Image = function() {
-        const img = new originalImage();
-        const origSetSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
-        Object.defineProperty(img, 'src', {
-            get: origSetSrc.get,
-            set: function(value) {
-                if (typeof value === 'string' && value.includes('log?key=')) {
-                    console.warn('🔒 Đã chặn Image exfiltrate!');
-                    return;
-                }
-                return origSetSrc.set.call(this, value);
-            }
-        });
-        return img;
-    };
-    const originalSendBeacon = navigator.sendBeacon;
-    navigator.sendBeacon = function(url, data) {
-        if (url && url.includes('log')) {
-            console.warn('🔒 Đã chặn sendBeacon!');
-            return false;
-        }
-        return originalSendBeacon.call(this, url, data);
-    };
-    const originalGetItem = Storage.prototype.getItem;
-    Storage.prototype.getItem = function(key) {
-        if (key === 'tog_key' || key === 'pending_key' || key === 'verification_code') {
-            const stack = new Error().stack || '';
-            if (stack.includes('console') || stack.includes('eval') || stack.includes('VM')) {
-                console.warn('🔒 Đã chặn đọc localStorage!');
-                return null;
-            }
-        }
-        return originalGetItem.call(this, key);
-    };
-    const originalParse = JSON.parse;
-    JSON.parse = function(text, reviver) {
-        const result = originalParse(text, reviver);
-        if (result && result.key && result.key.startsWith('ToG-')) {
-            const stack = new Error().stack || '';
-            if (stack.includes('console') || stack.includes('eval') || stack.includes('VM')) {
-                result.key = '🔒 HIDDEN';
-                if (result.verificationCode) result.verificationCode = '🔒 HIDDEN';
-            }
-        }
-        return result;
-    };
-    const originalStringify = JSON.stringify;
-    JSON.stringify = function(value, replacer, space) {
-        if (value && typeof value === 'object' && value.key && value.key.startsWith('ToG-')) {
-            const stack = new Error().stack || '';
-            if (stack.includes('console') || stack.includes('eval') || stack.includes('VM')) {
-                value.key = '🔒 HIDDEN';
-                if (value.verificationCode) value.verificationCode = '🔒 HIDDEN';
-            }
-        }
-        return originalStringify(value, replacer, space);
-    };
-    console.log('🛡️V1');
-})();
-</script>
-    <script>
-(function blockAllBypass() {
-    'use strict';
-    
-    const originalDir = console.dir;
-    console.dir = function(obj, ...args) {
-        if (obj && typeof obj === 'object') {
-            const jsonStr = JSON.stringify(obj);
-            if (jsonStr.includes('ToG-')) {
-                console.warn('🔒 Đã chặn console.dir hiển thị key!');
-                const sanitized = sanitizeObject(obj);
-                return originalDir.call(console, sanitized, ...args);
-            }
-        }
-        return originalDir.apply(console, arguments);
-    };
-    
-    const originalTable = console.table;
-    console.table = function(data, columns) {
-        if (data && typeof data === 'object') {
-            const jsonStr = JSON.stringify(data);
-            if (jsonStr.includes('ToG-')) {
-                console.warn('🔒 Đã chặn console.table hiển thị key!');
-                const sanitized = sanitizeObject(data);
-                return originalTable.call(console, sanitized, columns);
-            }
-        }
-        return originalTable.apply(console, arguments);
-    };
-    
-    const originalError = window.Error;
-    const originalTypeError = window.TypeError;
-    
-    window.Error = function(message) {
-        if (message && typeof message === 'string' && message.includes('ToG-')) {
-            console.warn('🔒 Đã chặn Error chứa key!');
-            return new originalError('Blocked: Cannot expose key');
-        }
-        return new originalError(message);
-    };
-    window.Error.prototype = originalError.prototype;
-    
-    window.TypeError = function(message) {
-        if (message && typeof message === 'string' && message.includes('ToG-')) {
-            console.warn('🔒 Đã chặn TypeError chứa key!');
-            return new originalTypeError('Blocked: Cannot expose key');
-        }
-        return new originalTypeError(message);
-    };
-    window.TypeError.prototype = originalTypeError.prototype;
-    
-    const originalThrow = Error;
-    const originalThrowType = TypeError;
-    
-    const OriginalError = window.Error;
-    window.Error = function(message) {
-        if (message && typeof message === 'string' && message.includes('ToG-')) {
-            return new OriginalError('Blocked');
-        }
-        return new OriginalError(message);
-    };
-    
-    window.addEventListener('error', function(e) {
-        if (e.message && e.message.includes('ToG-')) {
-            console.warn('🔒 Đã chặn uncaught exception chứa key!');
-            e.preventDefault();
-            return false;
-        }
-    }, true);
-    
-    window.addEventListener('unhandledrejection', function(e) {
-        const reason = e.reason;
-        if (reason && typeof reason === 'string' && reason.includes('ToG-')) {
-            console.warn('🔒 Đã chặn unhandled rejection chứa key!');
-            e.preventDefault();
-            return false;
-        }
-        if (reason && reason.message && reason.message.includes('ToG-')) {
-            console.warn('🔒 Đã chặn unhandled rejection chứa key!');
-            e.preventDefault();
-            return false;
-        }
-    }, true);
-    
-    const originalClipboard = navigator.clipboard;
-    if (originalClipboard) {
-        const originalWriteText = originalClipboard.writeText;
-        navigator.clipboard.writeText = function(text) {
-            const stack = new Error().stack || '';
-            const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-            
-            if (isFromConsole && text && typeof text === 'string' && text.includes('ToG-')) {
-                console.warn('🔒 Đã chặn clipboard copy key từ Console!');
-                showToast('⚠️ Không thể copy key từ Console');
-                return Promise.reject(new Error('Blocked: Cannot copy key from console'));
-            }
-            return originalWriteText.call(this, text);
-        };
-    }
-    
-    function sanitizeObject(obj) {
-        if (!obj || typeof obj !== 'object') return obj;
-        if (Array.isArray(obj)) {
-            return obj.map(item => sanitizeObject(item));
-        }
-        const result = {};
-        const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'accessKey', 'apiKey'];
-        for (const [key, value] of Object.entries(obj)) {
-            if (sensitiveKeys.includes(key) && typeof value === 'string' && value.includes('ToG-')) {
-                result[key] = '🔒 HIDDEN';
-            } else if (value && typeof value === 'object') {
-                result[key] = sanitizeObject(value);
-            } else {
-                result[key] = value;
-            }
-        }
-        return result;
-    }
-    
-    const originalFetch = window.fetch;
-    window.fetch = function(...args) {
-        const stack = new Error().stack || '';
-        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-        
-        if (isFromConsole && args[0] && typeof args[0] === 'string' && args[0].includes('/api/keys')) {
-            console.warn('🔒 Đã chặn fetch từ Console!');
-            showToast('⚠️ Không thể gọi API từ Console');
-            return Promise.reject(new Error('Blocked: Cannot call API from console'));
-        }
-        
-        return originalFetch.apply(this, args)
-            .then(async response => {
-                if (isFromConsole) {
-                    const clonedResponse = response.clone();
-                    try {
-                        const data = await clonedResponse.json();
-                        if (data && data.key && data.key.includes('ToG-')) {
-                            data.key = '🔒 HIDDEN';
-                            if (data.verificationCode) data.verificationCode = '🔒 HIDDEN';
-                            return new Response(JSON.stringify(data), {
-                                status: response.status,
-                                statusText: response.statusText,
-                                headers: response.headers
-                            });
-                        }
-                    } catch (e) {}
-                }
-                return response;
-            });
-    };
-    
-    const XHR = XMLHttpRequest;
-    const originalXHROpen = XHR.prototype.open;
-    const originalXHRSend = XHR.prototype.send;
-    
-    XHR.prototype.open = function(method, url, ...rest) {
-        const stack = new Error().stack || '';
-        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-        
-        if (isFromConsole && url && url.includes('/api/keys')) {
-            console.warn('🔒 Đã chặn XMLHttpRequest từ Console!');
-            showToast('⚠️ Không thể gọi API từ Console');
-            this.abort();
-            return;
-        }
-        this._url = url;
-        this._method = method;
-        return originalXHROpen.apply(this, [method, url, ...rest]);
-    };
-    
-    XHR.prototype.send = function(body) {
-        const stack = new Error().stack || '';
-        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-        
-        if (isFromConsole && this._url && this._url.includes('/api/keys')) {
-            console.warn('🔒 Đã chặn XMLHttpRequest send từ Console!');
-            return;
-        }
-        
-        this.addEventListener('load', function() {
-            if (this._url && this._url.includes('/api/keys') && isFromConsole) {
-                try {
-                    const responseText = this.responseText;
-                    if (responseText) {
-                        const data = JSON.parse(responseText);
-                        if (data && data.key && data.key.includes('ToG-')) {
-                            data.key = '🔒 HIDDEN';
-                            if (data.verificationCode) data.verificationCode = '🔒 HIDDEN';
-                            Object.defineProperty(this, 'responseText', {
-                                value: JSON.stringify(data),
-                                writable: false
-                            });
-                            Object.defineProperty(this, 'response', {
-                                value: JSON.stringify(data),
-                                writable: false
-                            });
-                        }
-                    }
-                } catch (e) {}
-            }
-        });
-        return originalXHRSend.apply(this, [body]);
-    };
-    
-    const originalStringify = JSON.stringify;
-    JSON.stringify = function(value, replacer, space) {
-        const stack = new Error().stack || '';
-        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-        
-        if (isFromConsole && value && typeof value === 'object') {
-            const jsonStr = originalStringify(value);
-            if (jsonStr.includes('ToG-')) {
-                const sanitized = sanitizeObject(value);
-                return originalStringify(sanitized, replacer, space);
-            }
-        }
-        return originalStringify(value, replacer, space);
-    };
-    
-    const originalParse = JSON.parse;
-    JSON.parse = function(text, reviver) {
-        const result = originalParse(text, reviver);
-        const stack = new Error().stack || '';
-        const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-        
-        if (isFromConsole && result && typeof result === 'object') {
-            const jsonStr = originalStringify(result);
-            if (jsonStr.includes('ToG-')) {
-                return sanitizeObject(result);
-            }
-        }
-        return result;
-    };
-    console.log('🛡️V2');
-})();
-</script>
-<script>
-console.log = function() {};
-(function waitForToG() {
-    if (typeof ToGKeyManager !== 'undefined' && ToGKeyManager && ToGKeyManager.prototype) {
-        try {
-            Object.defineProperty(ToGKeyManager.prototype, 'quickGet', {
-                value: async function() { return null; },
-                writable: false,
-                configurable: false
-            });
-            Object.defineProperty(ToGKeyManager.prototype, 'createKey', {
-                value: async function() { return null; },
-                writable: false,
-                configurable: false
-            });
-            Object.defineProperty(ToGKeyManager.prototype, 'verifyKey', {
-                value: async function() { return false; },
-                writable: false,
-                configurable: false
-            });
-            Object.defineProperty(ToGKeyManager.prototype, 'checkStatus', {
-                value: async function() { return null; },
-                writable: false,
-                configurable: false
-            });
-            console.log('🔒 Đã chặn ToGKeyManager');
-        } catch(e) {}
-        return;
-    }
-    setTimeout(waitForToG, 100);
-})();
-try { delete window.keyManager; } catch(e) {}
-try { delete window.currentKey; } catch(e) {}
-try { delete window.verificationCode; } catch(e) {}
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToG Key V2</title>
@@ -991,93 +186,77 @@ try { delete window.verificationCode; } catch(e) {}
             text-transform: uppercase;
             margin-top: 1px
         }
-.chip-mini {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: linear-gradient(145deg, #1a1f2a, #0d1117);
-    box-shadow: 
-        0 4px 16px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    flex-shrink: 0;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    transition: all 0.3s ease;
-    overflow: hidden;
-}
-
-.chip-mini::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: 10px;
-    padding: 1px;
-    background: linear-gradient(135deg, 
-        rgba(242, 179, 61, 0.3),
-        transparent 40%,
-        transparent 60%,
-        rgba(242, 179, 61, 0.15)
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-}
-
-.chip-logo {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 6px;
-    display: block;
-    filter: drop-shadow(0 2px 8px rgba(242, 179, 61, 0.15));
-}
-
-.dropdown-header:hover .chip-mini {
-    transform: scale(1.08);
-    box-shadow: 
-        0 6px 24px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(242, 179, 61, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.dropdown-header:hover .chip-mini::before {
-    background: linear-gradient(135deg, 
-        rgba(242, 179, 61, 0.5),
-        transparent 30%,
-        transparent 70%,
-        rgba(242, 179, 61, 0.25)
-    );
-}
-
-.dropdown-header.open .chip-mini {
-    transform: rotate(-5deg) scale(1.05);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        0 0 60px rgba(242, 179, 61, 0.1);
-}
-
-@keyframes logoPulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.02);
-    }
-}
-
-.chip-mini {
-    animation: logoPulse 3s ease-in-out infinite;
-}
-
-.dropdown-header:hover .chip-mini {
-    animation-play-state: paused;
-}
-.keycard-mini-mid {
+        .chip-mini {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #1a1f2a, #0d1117);
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+        .chip-mini::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 10px;
+            padding: 1px;
+            background: linear-gradient(135deg,
+                rgba(242, 179, 61, 0.3),
+                transparent 40%,
+                transparent 60%,
+                rgba(242, 179, 61, 0.15)
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .chip-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+            display: block;
+            filter: drop-shadow(0 2px 8px rgba(242, 179, 61, 0.15));
+        }
+        .dropdown-header:hover .chip-mini {
+            transform: scale(1.08);
+            box-shadow:
+                0 6px 24px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(242, 179, 61, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            animation-play-state: paused;
+        }
+        .dropdown-header:hover .chip-mini::before {
+            background: linear-gradient(135deg,
+                rgba(242, 179, 61, 0.5),
+                transparent 30%,
+                transparent 70%,
+                rgba(242, 179, 61, 0.25)
+            );
+        }
+        .dropdown-header.open .chip-mini {
+            transform: rotate(-5deg) scale(1.05);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(242, 179, 61, 0.1);
+        }
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .keycard-mini-mid {
             position: relative;
             z-index: 1;
             display: flex;
@@ -1310,9 +489,9 @@ try { delete window.verificationCode; } catch(e) {}
                             <div class="keycard-mini-tag">ToG<span> Key</span></div>
                             <div class="keycard-mini-sub">Mã truy cập ToG</div>
                         </div>
-                         <div class="chip-mini">
-    <img src="logo.png" alt="ToG Logo" class="chip-logo">
-</div>
+                        <div class="chip-mini">
+                            <img src="logo.png" alt="ToG Logo" class="chip-logo">
+                        </div>
                     </div>
                     <div class="keycard-mini-mid" id="keycardMid">
                         <span class="empty-key-text">Chưa có key</span>
@@ -1324,13 +503,13 @@ try { delete window.verificationCode; } catch(e) {}
                         </div>
                     </div>
                 </div>
-               <div class="panel-mini" id="panelIdle">
-    <div class="panel-mini-title">Nhận Key ToG:</div>
-    <button class="btn btn-primary" id="getKeyBtn">
-        <span class="spinner"></span>
-        <span class="btn-label">🔑 Lấy Key</span>
-    </button>
-</div>
+                <div class="panel-mini" id="panelIdle">
+                    <div class="panel-mini-title">Nhận Key ToG:</div>
+                    <button class="btn btn-primary" id="getKeyBtn">
+                        <span class="spinner"></span>
+                        <span class="btn-label">🔑 Lấy Key</span>
+                    </button>
+                </div>
                 <div class="panel-mini" id="panelReady" style="display:none">
                     <div class="panel-mini-title">Key đã sẵn sàng</div>
                     <div class="panel-mini-desc">Sao chép key bên dưới để sử dụng. Giữ key này riêng tư.</div>
@@ -1343,6 +522,7 @@ try { delete window.verificationCode; } catch(e) {}
         </div>
     </div>
     <div class="toast" id="toast"></div>
+
     <script>
         (function blockSessionStorage() {
             const originalGetItem = Storage.prototype.getItem;
@@ -1366,11 +546,10 @@ try { delete window.verificationCode; } catch(e) {}
                 return originalSetItem.call(this, key, value);
             };
         })();
+
         const LINK4M_API = "6a954eb5b9ba5176de7851ed";
         const LINK4M_BASE = "https://link4m.co/st";
         const API_URL = 'https://tog-proxy-vn1.vercel.app/api';
-        
-        // URL của Server Crypto (Vercel 1) - Nơi giữ mã Secret
         const CRYPTO_URL = 'https://baovemahoa202020202020.vercel.app/api/cryp';
 
         const header = document.getElementById('dropdownHeader');
@@ -1382,26 +561,30 @@ try { delete window.verificationCode; } catch(e) {}
         const statusText = document.getElementById('statusText');
         const toastEl = document.getElementById('toast');
         let isOpen = false;
+
         header.addEventListener('click', () => {
             isOpen = !isOpen;
             header.classList.toggle('open', isOpen);
             body.classList.toggle('open', isOpen);
         });
+
         function showToast(msg) {
             toastEl.textContent = msg;
             toastEl.classList.add('show');
             clearTimeout(showToast._t);
             showToast._t = setTimeout(() => toastEl.classList.remove('show'), 3000);
         }
+
         function shortId() {
             return Math.random().toString(16).slice(2, 10).toUpperCase();
         }
+
         function makeHash8() {
             return Math.floor(10000000 + Math.random() * 90000000).toString();
         }
+
         function renderUnlockedKey(key, expiresAt, createdAt, displayId) {
             window.currentKey = key;
-            // Sử dụng displayId từ tham số, nếu không có mới dùng shortId()
             const keyId = displayId || shortId();
             keycardMid.innerHTML = `
                 <div style="width:100%; padding: 4px 0;">
@@ -1442,6 +625,7 @@ try { delete window.verificationCode; } catch(e) {}
             statusText.textContent = 'Đã mở khóa';
             panelIdle.style.display = 'none';
         }
+
         function resetCard() {
             keycardMid.innerHTML = `<span class="empty-key-text">Chưa có key</span>`;
             statusPill.classList.remove('ready');
@@ -1450,17 +634,15 @@ try { delete window.verificationCode; } catch(e) {}
             panelIdle.style.display = 'flex';
             if (window.countdownInterval) clearInterval(window.countdownInterval);
         }
-        
-        // ===== THÊM BIẾN LẮNG NGHE TƯƠNG TÁC =====
+
         let hasInteracted = false;
-        let globalSessionToken = ''; // <-- BIẾN LƯU TOKEN
+        let globalSessionToken = '';
         ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(event => {
             document.addEventListener(event, () => {
                 hasInteracted = true;
             }, { once: true });
         });
 
-        // ===== HÀM LẤY TOKEN TỪ SERVER =====
         async function fetchSessionToken() {
             if (globalSessionToken) return;
             try {
@@ -1474,27 +656,24 @@ try { delete window.verificationCode; } catch(e) {}
             } catch (e) {}
         }
 
-        // ===== TẠO VÂN TAY CANVAS (Vẽ chữ ToG) =====
         async function getCanvasHash() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             ctx.font = "30px Arial";
             ctx.fillStyle = "#000000";
             ctx.fillText("ToG", 10, 50);
-            
+
             const dataUrl = canvas.toDataURL();
             const msgBuffer = new TextEncoder().encode(dataUrl);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // Hàm gọi Server Crypto (đã tích hợp gửi mốc thời gian tương tác và sigCode)
         async function callCryptoServer(action, payload = {}) {
-            // Tự động xin Token nếu chưa có
             if (action === 'create_key') await fetchSessionToken();
 
             const fi = window.__firstInteraction || null;
-            const canvasHash = await getCanvasHash(); // Lấy mã Canvas
+            const canvasHash = await getCanvasHash();
 
             const response = await fetch(CRYPTO_URL, {
                 method: 'POST',
@@ -1505,8 +684,8 @@ try { delete window.verificationCode; } catch(e) {}
                     hasInteracted: hasInteracted,
                     firstInteractionAt: fi ? fi.at : 0,
                     pageLoadAt: fi ? (fi.at - fi.sinceLoadMs) : (performance.timeOrigin || Date.now()),
-                    canvasHash: canvasHash, // <-- GỬI CANVAS HASH LÊN SERVER
-                    sessionToken: globalSessionToken // <-- GỬI TOKEN LÊN SERVER
+                    canvasHash: canvasHash,
+                    sessionToken: globalSessionToken
                 })
             });
             const data = await response.json();
@@ -1518,7 +697,6 @@ try { delete window.verificationCode; } catch(e) {}
 
         async function createKeyOnBackend(sigCode) {
             try {
-                // Gửi sigCode dưới dạng clientId trong payload
                 const data = await callCryptoServer('create_key', { sigCode: sigCode });
                 if (!data || !data.key) {
                     throw new Error('Invalid response');
@@ -1530,17 +708,19 @@ try { delete window.verificationCode; } catch(e) {}
                 return { success: false, error: error.message };
             }
         }
+
         async function verifyKeyOnBackend(key, verificationCode) {
             try {
-                const data = await callCryptoServer('verify', { 
-                    key: key, 
-                    verificationCode: verificationCode 
+                const data = await callCryptoServer('verify', {
+                    key: key,
+                    verificationCode: verificationCode
                 });
                 return data;
             } catch (error) {
                 return { success: false, error: error.message };
             }
         }
+
         async function checkKeyStatus(key) {
             try {
                 const data = await callCryptoServer('check_status', { key: key });
@@ -1549,27 +729,25 @@ try { delete window.verificationCode; } catch(e) {}
                 return { success: false, error: error.message };
             }
         }
+
         function goThroughLink4m(key) {
             const destination = window.location.origin + window.location.pathname + '?key=' + encodeURIComponent(key);
             const wrapped = `${LINK4M_BASE}?api=${LINK4M_API}&url=${encodeURIComponent(destination)}`;
             window.location.replace(wrapped);
         }
+
         getKeyBtn.addEventListener('click', async () => {
             getKeyBtn.classList.add('loading');
             getKeyBtn.disabled = true;
             try {
-                // 1. Sinh ID 8 số đánh lạc hướng
                 const sigCode = makeHash8();
-                // 2. Lưu vào sessionStorage với tên biến _tgs_ (tránh bị quét)
                 sessionStorage.setItem('_tgs_', sigCode);
 
-                // 3. Gửi lên Backend (qua Proxy)
                 const data = await createKeyOnBackend(sigCode);
                 if (!data.success || !data.key) {
                     throw new Error(data.error || 'Không tạo được key');
                 }
                 const key = data.key;
-                const verificationCode = data.verificationCode;
                 goThroughLink4m(key);
             } catch (error) {
                 showToast('❌ Lỗi: ' + error.message);
@@ -1577,14 +755,13 @@ try { delete window.verificationCode; } catch(e) {}
                 getKeyBtn.disabled = false;
             }
         });
+
         (function displayKeyFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const key = urlParams.get('key');
             if (!key || !key.startsWith('ToG-')) {
-                console.log('ℹ️');
                 return;
             }
-            console.log('🔑 Phát hiện key từ URL:', key);
             keycardMid.innerHTML = `
                 <div style="text-align:center;padding:20px;">
                     <div style="display:inline-block;width:30px;height:30px;border:3px solid var(--line);border-top:3px solid var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
@@ -1593,10 +770,8 @@ try { delete window.verificationCode; } catch(e) {}
             `;
             callCryptoServer('check_status', { key: key })
                 .then(data => {
-                    console.log('📊 Status response from backend:', data);
                     if (data.success) {
                         if (data.status === 'verified' || data.status === 'pending') {
-                            // Lấy ID hiển thị (ưu tiên từ server, fallback từ sessionStorage)
                             const displayId = data.userId || data.sigCode || data.client_id || sessionStorage.getItem('_tgs_') || '00000000';
                             renderUnlockedKey(key, data.expires_at, data.created_at, displayId);
                             showToast('🎉 Key đã được mở khóa!');
@@ -1619,6 +794,7 @@ try { delete window.verificationCode; } catch(e) {}
                     resetCard();
                     clearKeyFromURL();
                 });
+
             function clearKeyFromURL() {
                 if (window.history && window.history.replaceState) {
                     history.replaceState(null, '', window.location.pathname);
@@ -1628,6 +804,7 @@ try { delete window.verificationCode; } catch(e) {}
                 sessionStorage.removeItem('_tgs_');
             }
         })();
+
         (async function init() {
             const params = new URLSearchParams(window.location.search);
             const key = params.get('key');
@@ -1664,375 +841,5 @@ try { delete window.verificationCode; } catch(e) {}
             }, 500);
         })();
     </script>
-    <script>
-        (function blockConsoleKeys() {
-            console.log('Anti bypass!!!');
-            const originalFetch = window.fetch;
-            const originalRender = window.renderUnlockedKey;
-            window.fetch = function(...args) {
-                const url = args[0];
-                const options = args[1] || {};
-                const stack = new Error().stack || '';
-                const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack
-                    .includes('debugger');
-                if (isFromConsole && typeof url === 'string' && url.includes('/api/keys') && options.method === 'POST') {
-                    console.warn('⚠️ Đã chặn tạo key từ Console!');
-                    showToast('⚠️ Không thể tạo key từ Console');
-                    return Promise.reject(new Error('Tạo key bị chặn'));
-                }
-                if (isFromConsole && typeof url === 'string' && url.includes('/api/keys') && options.method === 'GET') {
-                    console.warn('⚠️ Đã chặn xem key từ Console!');
-                    showToast('⚠️ Không thể xem key từ Console');
-                    return Promise.reject(new Error('Xem key bị chặn'));
-                }
-                return originalFetch.apply(this, args);
-            };
-            const originalXHROpen = XMLHttpRequest.prototype.open;
-            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-                const stack = new Error().stack || '';
-                const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack
-                    .includes('debugger');
-                if (isFromConsole && method === 'POST' && url.includes('/api/keys')) {
-                    console.warn('⚠️ Đã chặn tạo key qua XMLHttpRequest từ Console!');
-                    showToast('⚠️ Không thể tạo key từ Console');
-                    return;
-                }
-                if (isFromConsole && method === 'GET' && url.includes('/api/keys')) {
-                    console.warn('⚠️ Đã chặn xem key qua XMLHttpRequest từ Console!');
-                    showToast('⚠️ Không thể xem key từ Console');
-                    return;
-                }
-                return originalXHROpen.apply(this, [method, url, ...rest]);
-            };
-            const originalRenderFn = window.renderUnlockedKey;
-            if (typeof originalRenderFn === 'function') {
-                window.renderUnlockedKey = function(key) {
-                    const stack = new Error().stack || '';
-                    const isFromConsole = stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack
-                        .includes('debugger');
-                    if (isFromConsole) {
-                        console.warn('⚠️ Đã chặn hiển thị key từ Console!');
-                        document.getElementById('keycardMid').innerHTML = `
-                            <div style="background:rgba(255,0,0,0.1); border:1px solid var(--danger); border-radius:8px; padding:10px; color:var(--danger); text-align:center;">
-                                🔒 Key đã bị khóa
-                            </div>
-                        `;
-                        showToast('⚠️ Key không được hiển thị từ Console');
-                        return;
-                    }
-                    return originalRenderFn.call(this, key);
-                };
-            }
-            const keyDisplay = document.querySelector('.key-display-mini');
-            if (keyDisplay && !keyDisplay.textContent.includes('ToG-')) {
-                keyDisplay.textContent = '🔒 Key đã bị khóa';
-                keyDisplay.style.color = 'var(--danger)';
-            }
-            try {
-                delete window.API_URL;
-            } catch (e) {}
-            console.log('🐳 Anti Check Key:))');
-        })();
-    </script>
-<script>
-    (function autoHideDataKey() {
-        function isFromConsole() {
-            const stack = new Error().stack || '';
-            return stack.includes('console') || stack.includes('eval') || stack.includes('VM') || stack.includes('debugger');
-        }
-        function hideAllKeys(obj) {
-            if (!isFromConsole()) return obj;
-            if (!obj || typeof obj !== 'object') return obj;
-            if (Array.isArray(obj)) {
-                return obj.map(item => hideAllKeys(item));
-            }
-            const result = {};
-            const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'ip_address', 'user_agent', 'sessionId', 'session_id', 'sigCode', 'client_id'];
-            for (const [key, value] of Object.entries(obj)) {
-                if (sensitiveKeys.includes(key) && typeof value === 'string' && value.length > 0) {
-                    if (value.startsWith('ToG-') || value.length >= 8) {
-                        result[key] = '🔒 HIDDEN';
-                        continue;
-                    }
-                }
-                if (value && typeof value === 'object') {
-                    result[key] = hideAllKeys(value);
-                } else {
-                    result[key] = value;
-                }
-            }
-            return result;
-        }
-        const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-            return originalFetch.apply(this, args)
-                .then(async response => {
-                    const clonedResponse = response.clone();
-                    try {
-                        const data = await clonedResponse.json();
-                        const hiddenData = hideAllKeys(data);
-                        return new Response(JSON.stringify(hiddenData), {
-                            status: response.status,
-                            statusText: response.statusText,
-                            headers: response.headers
-                        });
-                    } catch (e) {
-                        return response;
-                    }
-                });
-        };
-        const XHR = XMLHttpRequest;
-        const originalOpen = XHR.prototype.open;
-        const originalSend = XHR.prototype.send;
-        XHR.prototype.open = function(method, url, ...rest) {
-            this._url = url;
-            this._method = method;
-            return originalOpen.apply(this, [method, url, ...rest]);
-        };
-        XHR.prototype.send = function(body) {
-            this.addEventListener('load', function() {
-                if (this._url && this._url.includes('/api/keys')) {
-                    try {
-                        const responseText = this.responseText;
-                        if (responseText) {
-                            const data = JSON.parse(responseText);
-                            const hiddenData = hideAllKeys(data);
-                            Object.defineProperty(this, 'responseText', {
-                                value: JSON.stringify(hiddenData),
-                                writable: false
-                            });
-                            Object.defineProperty(this, 'response', {
-                                value: JSON.stringify(hiddenData),
-                                writable: false
-                            });
-                        }
-                    } catch (e) {}
-                }
-            });
-            return originalSend.apply(this, [body]);
-        };
-        const originalLog = console.log;
-        const originalWarn = console.warn;
-        const originalError = console.error;
-        const originalInfo = console.info;
-        const originalDebug = console.debug;
-        function filterConsoleArgs(args) {
-            return args.map(arg => {
-                if (arg && typeof arg === 'object') {
-                    let hasKey = false;
-                    const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'sigCode', 'client_id'];
-                    for (const sk of sensitiveKeys) {
-                        if (arg[sk] && typeof arg[sk] === 'string' && (arg[sk].startsWith('ToG-') || arg[sk].length >= 8)) {
-                            hasKey = true;
-                            break;
-                        }
-                    }
-                    if (hasKey) {
-                        return hideAllKeys(arg);
-                    }
-                    return arg;
-                }
-                if (typeof arg === 'string') {
-                    if (arg.includes('ToG-')) {
-                        return arg.replace(/ToG-[a-zA-Z0-9]{8,}/g, '🔒 HIDDEN');
-                    }
-                    return arg;
-                }
-                return arg;
-            });
-        }
-        console.log = function(...args) {
-            const filtered = filterConsoleArgs(args);
-            return originalLog.apply(console, filtered);
-        };
-        console.warn = function(...args) {
-            const filtered = filterConsoleArgs(args);
-            return originalWarn.apply(console, filtered);
-        };
-        console.error = function(...args) {
-            const filtered = filterConsoleArgs(args);
-            return originalError.apply(console, filtered);
-        };
-        console.info = function(...args) {
-            const filtered = filterConsoleArgs(args);
-            return originalInfo.apply(console, filtered);
-        };
-        console.debug = function(...args) {
-            const filtered = filterConsoleArgs(args);
-            return originalDebug.apply(console, filtered);
-        };
-        Object.defineProperty(window, 'data', {
-            get: function() {
-                if (isFromConsole()) {
-                    console.warn('🔒 Đã ẩn data.key');
-                    return { key: '🔒 HIDDEN' };
-                }
-                return this._data;
-            },
-            set: function(val) {
-                this._data = val;
-            }
-        });
-        const originalStringify = JSON.stringify;
-        JSON.stringify = function(value, replacer, space) {
-            if (value && typeof value === 'object') {
-                let hasKey = false;
-                const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'sigCode', 'client_id'];
-                for (const sk of sensitiveKeys) {
-                    if (value[sk] && typeof value[sk] === 'string' && (value[sk].startsWith('ToG-') || value[sk].length >= 8)) {
-                        hasKey = true;
-                        break;
-                    }
-                }
-                if (hasKey && isFromConsole()) {
-                    value = hideAllKeys(value);
-                }
-            }
-            return originalStringify(value, replacer, space);
-        };
-        const originalParse = JSON.parse;
-        JSON.parse = function(text, reviver) {
-            const result = originalParse(text, reviver);
-            if (isFromConsole()) {
-                let hasKey = false;
-                const sensitiveKeys = ['key', 'key_value', 'verificationCode', 'verification_code', 'sigCode', 'client_id'];
-                for (const sk of sensitiveKeys) {
-                    if (result && result[sk] && typeof result[sk] === 'string' && (result[sk].startsWith('ToG-') || result[sk].length >= 8)) {
-                        hasKey = true;
-                        break;
-                    }
-                }
-                if (hasKey) {
-                    return hideAllKeys(result);
-                }
-            }
-            return result;
-        };
-    })();
-</script>
-    <script>
-(function blockDevToolsAndViewSource() {
-    'use strict';
-
-    document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) {
-            e.preventDefault();
-            return false;
-        }
-        if (e.key === 'F12' || e.keyCode === 123) {
-            e.preventDefault();
-            return false;
-        }
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-            e.preventDefault();
-            return false;
-        }
-        if (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c' || e.key === 'U' || e.key === 'u')) {
-            e.preventDefault();
-            return false;
-        }
-    }, true);
-
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    }, true);
-
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-        return false;
-    }, true);
-
-    let devtoolsOpen = false;
-    const threshold = 160;
-    const emitEvent = function() {
-        const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-        const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-        
-        if (widthThreshold || heightThreshold) {
-            if (!devtoolsOpen) {
-                devtoolsOpen = true;
-                console.clear();
-            }
-        } else {
-            devtoolsOpen = false;
-        }
-    };
-    setInterval(emitEvent, 1000);
-
-})();
-</script>
-<script>
-(function trackInteractionTime() {
-    'use strict';
-
-    const pageLoadTime = performance.now();
-
-    let firstInteractionTime = null;
-    let interactionType = null;
-    let reported = false;
-
-    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
-
-    function onFirstInteraction(e) {
-        if (firstInteractionTime !== null) return;
-
-        firstInteractionTime = performance.now();
-        interactionType = e.type;
-
-        events.forEach(evt => {
-            document.removeEventListener(evt, onFirstInteraction, true);
-        });
-
-        const elapsed = firstInteractionTime - pageLoadTime;
-
-        try {
-            console.log(
-                `🐳`
-            );
-        } catch (err) {}
-
-        const toastEl = document.getElementById('toast');
-        if (toastEl) {
-            const msg = `🐳`;
-            toastEl.textContent = msg;
-            toastEl.classList.add('show');
-            clearTimeout(trackInteractionTime._toastTimer);
-            trackInteractionTime._toastTimer = setTimeout(() => {
-                toastEl.classList.remove('show');
-            }, 3000);
-        }
-
-        // Lưu để callCryptoServer đọc và gửi lên backend
-        window.__firstInteraction = {
-            type: interactionType,
-            at: Date.now(),
-            sinceLoadMs: elapsed
-        };
-
-        reported = true;
-    }
-
-    events.forEach(evt => {
-        document.addEventListener(evt, onFirstInteraction, { capture: true, passive: true });
-    });
-
-    setTimeout(() => {
-        if (!reported) {
-            try {
-                console.log('⏱️ Chưa có tương tác nào sau 30s kể từ khi tải trang');
-            } catch (err) {}
-        }
-    }, 30000);
-
-    window.addEventListener('load', () => {
-        const loadElapsed = performance.now() - pageLoadTime;
-        try {
-            console.log(`📄`);
-        } catch (err) {}
-        window.__pageLoadMs = loadElapsed;
-    });
-})();
-</script>
 </body>
 </html>
